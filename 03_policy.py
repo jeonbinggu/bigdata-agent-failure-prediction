@@ -7,6 +7,7 @@
 출력: results/policy_dev.csv, results/policy_holdout.csv, results/policy_tradeoff.png
 """
 import itertools
+import sys
 
 import matplotlib
 import numpy as np
@@ -22,9 +23,13 @@ CAPS = [30, 50, 80]
 DEV_SEEDS, HOLD_SEEDS, N_BOOT = 5, 20, 2000
 
 
+PRED = sys.argv[1] if len(sys.argv) > 1 else "p_lgbm"  # p_lgbm / p_gru / p_ens
+SUFFIX = "" if PRED == "p_lgbm" else f"_{PRED}"
+
+
 def load(pred_path, meta):
     pr = pd.read_parquet(pred_path)
-    p = pr.pivot_table(index="traj_id", columns="k", values="p_lgbm")
+    p = pr.pivot_table(index="traj_id", columns="k", values=PRED)
     t = meta[meta.instance_id.isin(set(pr.instance_id))].set_index("traj_id").join(p)
     return [g.to_dict("records") for _, g in t.groupby("instance_id")]
 
@@ -132,9 +137,9 @@ def main():
                 hold_rows.append(row)
             print(f"{unit} B={Bs} done (cap={best_cap}, es={best_es})", flush=True)
 
-    pd.DataFrame(dev_rows).to_csv("results/policy_dev.csv", index=False)
+    pd.DataFrame(dev_rows).to_csv(f"results/policy_dev{SUFFIX}.csv", index=False)
     h = pd.DataFrame(hold_rows)
-    h.to_csv("results/policy_holdout.csv", index=False)
+    h.to_csv(f"results/policy_holdout{SUFFIX}.csv", index=False)
     cols = ["unit", "budget_steps", "policy", "config", "solve_rate", "solve_ci_lo", "solve_ci_hi",
             "cost_per_task", "wrong_stop_rate", "diff_vs_random_retry", "diff_vs_random_retry_lo", "diff_vs_random_retry_hi"]
     print(h[cols].round(4).to_string(index=False))
@@ -150,7 +155,7 @@ def main():
         ax.set_title(f"budget unit: {unit}")
         ax.legend()
     fig.tight_layout()
-    fig.savefig("results/policy_tradeoff.png", dpi=120)
+    fig.savefig(f"results/policy_tradeoff{SUFFIX}.png", dpi=120)
 
 
 if __name__ == "__main__":

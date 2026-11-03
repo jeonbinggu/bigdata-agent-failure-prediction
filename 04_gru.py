@@ -9,6 +9,7 @@ import glob
 import importlib.util
 import math
 import os
+import sys
 
 import numpy as np
 import pandas as pd
@@ -16,6 +17,7 @@ import pyarrow.parquet as pq
 import torch
 from sklearn.isotonic import IsotonicRegression
 from sklearn.metrics import average_precision_score, roc_auc_score
+from sklearn.model_selection import GroupKFold
 from torch import nn
 
 spec = importlib.util.spec_from_file_location("feat", "01_features.py")
@@ -23,6 +25,7 @@ F = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(F)
 
 L, KS, SEED = 30, (5, 10, 20, 30), 0
+OOF = "--oof" in sys.argv  # dev OOF 예측까지 만들어 정책용 파일에 추가 (학습 5배)
 A2I = {a: i + 1 for i, a in enumerate(F.ACTIONS)}  # 0 = padding
 N_NUM = 8
 torch.manual_seed(SEED)
@@ -133,7 +136,7 @@ def main():
     is_val = np.isin(iid, list(val_inst))
     lgbm = pd.read_parquet("results/holdout_preds.parquet")
 
-    rows = []
+    rows, dev_out, hold_out = [], [], []
     for k in KS:
         sel = n_all > k
         a = torch.tensor(cache["acts"][sel, :k], dtype=torch.long)
@@ -160,7 +163,32 @@ def main():
                      "pr_auc": average_precision_score(yh, ens), "ece": ece(yh, ens)})
         print(pd.DataFrame(rows[-3:]).round(4).to_string(index=False), flush=True)
 
+        if OOF:
+            # 정책 τ 튜닝용 dev OOF: 과제 단위 5-fold, 각 fold 안에서도 10% 과제로 early stopping
+            di = np.where(dev)[0]
+            oof = np.zeros(len(di))
+            for f, (tr, va) in enumerate(GroupKFold(5).split(di, groups=iid[sel][di])):
+                tr_inst = np.unique(iid[sel][di[tr]])
+                pick = np.random.default_rng(f).choice(tr_inst, size=len(tr_inst) // 10, replace=False)
+                inner_val = np.isin(iid[sel][di[tr]], pick)
+                mf = train(a[di[tr]], x[di[tr]], m[di[tr]], y[di[tr]], inner_val)
+                oof[va] = predict(mf, a[di[va]], x[di[va]], m[di[va]])
+            folds = list(GroupKFold(5).split(di, groups=iid[sel][di]))
+            p_dev = np.zeros(len(di))
+            for tr, va in folds:  # cross-fit isotonic
+                p_dev[va] = IsotonicRegression(out_of_bounds="clip").fit(oof[tr], y[di][tr]).predict(oof[va])
+            dtid = cache["traj_id"][sel][di]
+            dev_out.append(pd.DataFrame({"traj_id": dtid, "k": k, "p_gru": p_dev}))
+            hold_out.append(pd.DataFrame({"traj_id": tids, "k": k, "p_gru": p}))
+
     pd.DataFrame(rows).to_csv("results/gru_metrics.csv", index=False)
+    if OOF:
+        # 앙상블 = (GRU + LightGBM)/2 를 기존 예측 파일에 열로 추가 → 03_policy.py p_ens 로 사용
+        for path, extra in (("data/dev_oof_preds.parquet", dev_out), ("results/holdout_preds.parquet", hold_out)):
+            base = pd.read_parquet(path).drop(columns=["p_gru", "p_ens"], errors="ignore")
+            base = base.merge(pd.concat(extra), on=["traj_id", "k"], how="left")
+            base["p_ens"] = (base.p_gru + base.p_lgbm) / 2
+            base.to_parquet(path, index=False)
 
 
 if __name__ == "__main__":

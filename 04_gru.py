@@ -26,6 +26,7 @@ spec.loader.exec_module(F)
 
 L, KS, SEED = 30, (5, 10, 20, 30), 0
 OOF = "--oof" in sys.argv  # dev OOF 예측까지 만들어 정책용 파일에 추가 (학습 5배)
+N_SEEDS = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else 0  # 시드 분산 평가 전용
 A2I = {a: i + 1 for i, a in enumerate(F.ACTIONS)}  # 0 = padding
 N_NUM = 8
 torch.manual_seed(SEED)
@@ -144,6 +145,24 @@ def main():
         m = torch.tensor(M[sel])
         y, h, v = y_all[sel], is_hold[sel], is_val[sel]
         dev = ~h
+        if N_SEEDS:
+            # 시드별 GRU 성능 + 시드 평균 확률(GRU) + 시드 평균 GRU와 LightGBM 앙상블
+            tids = cache["traj_id"][sel][h]
+            lg = lgbm[lgbm.k == k].set_index("traj_id").loc[tids, "p_lgbm"].values
+            yh, ps = y[h], []
+            for s in range(N_SEEDS):
+                torch.manual_seed(s)
+                ms = train(a[dev], x[dev], m[dev], y[dev], v[dev])
+                iso = IsotonicRegression(out_of_bounds="clip").fit(predict(ms, a[dev & v], x[dev & v], m[dev & v]), y[dev & v])
+                ps.append(iso.predict(predict(ms, a[h], x[h], m[h])))
+                rows.append({"k": k, "model": "gru", "seed": s, "roc_auc": roc_auc_score(yh, ps[-1]),
+                             "pr_auc": average_precision_score(yh, ps[-1])})
+            pavg = np.mean(ps, 0)
+            for name, pp in (("gru_seedavg", pavg), ("gru_seedavg+lgbm", (pavg + lg) / 2), ("lgbm", lg)):
+                rows.append({"k": k, "model": name, "seed": -1, "roc_auc": roc_auc_score(yh, pp),
+                             "pr_auc": average_precision_score(yh, pp), "ece": ece(yh, pp)})
+            print(pd.DataFrame(rows[-(N_SEEDS + 3):]).round(4).to_string(index=False), flush=True)
+            continue
         model = train(a[dev], x[dev], m[dev], y[dev], v[dev])
         p_val = predict(model, a[dev & v], x[dev & v], m[dev & v])
         iso = IsotonicRegression(out_of_bounds="clip").fit(p_val, y[dev & v])
@@ -181,7 +200,7 @@ def main():
             dev_out.append(pd.DataFrame({"traj_id": dtid, "k": k, "p_gru": p_dev}))
             hold_out.append(pd.DataFrame({"traj_id": tids, "k": k, "p_gru": p}))
 
-    pd.DataFrame(rows).to_csv("results/gru_metrics.csv", index=False)
+    pd.DataFrame(rows).to_csv("results/gru_seeds.csv" if N_SEEDS else "results/gru_metrics.csv", index=False)
     if OOF:
         # 앙상블 = (GRU + LightGBM)/2 를 기존 예측 파일에 열로 추가 → 03_policy.py p_ens 로 사용
         for path, extra in (("data/dev_oof_preds.parquet", dev_out), ("results/holdout_preds.parquet", hold_out)):

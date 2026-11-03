@@ -21,6 +21,7 @@ BUDGET_STEPS = [60, 100, 150, 200]
 TAU_GRID = [0.0, 0.02, 0.05, 0.1, 0.15]
 CAPS = [30, 50, 80]
 DEV_SEEDS, HOLD_SEEDS, N_BOOT = 5, 20, 2000
+UNITS = ("steps", "chars", "ctx")  # ctx: 매 단계 프롬프트 + 누적 대화를 다시 입력하는 과금 근사
 
 
 PRED = sys.argv[1] if len(sys.argv) > 1 else "p_lgbm"  # p_lgbm / p_gru / p_ens
@@ -37,7 +38,7 @@ def load(pred_path, meta):
 def cost_at(a, step, unit):
     if unit == "steps":
         return min(step, a["n_steps"])
-    return a[f"chars_at_{step}"]
+    return a[f"{unit}_at_{step}"]  # chars_at_k / ctx_at_k
 
 
 def run_attempt(a, taus, cap, unit):
@@ -50,7 +51,7 @@ def run_attempt(a, taus, cap, unit):
             return cost_at(a, k, unit), False, True
     if cap and n > cap:
         return cost_at(a, cap, unit), False, True
-    return (n if unit == "steps" else a["chars_total"]), bool(a["target"]), False
+    return (n if unit == "steps" else a[f"{unit}_total"]), bool(a["target"]), False
 
 
 def simulate(tasks, budget, unit, taus=None, cap=None, single=False, seeds=1):
@@ -108,9 +109,10 @@ def main():
 
     dev_rows, hold_rows = [], []
     rng = np.random.default_rng(0)
-    for unit in ("steps", "chars"):
+    per_step = {"steps": 1, "chars": chars_per_step, "ctx": meta.ctx_total.sum() / meta.n_steps.sum()}
+    for unit in UNITS:
         for Bs in BUDGET_STEPS:
-            B = Bs if unit == "steps" else Bs * chars_per_step
+            B = Bs * per_step[unit]  # 같은 '평균 단계 수' 예산을 각 비용 단위로 환산
             # 1) dev에서 모든 정책 평가 → cap / early_stop 최적값 선택
             res = {}
             for name, kw in policies():
@@ -144,8 +146,8 @@ def main():
             "cost_per_task", "wrong_stop_rate", "diff_vs_random_retry", "diff_vs_random_retry_lo", "diff_vs_random_retry_hi"]
     print(h[cols].round(4).to_string(index=False))
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-    for ax, unit in zip(axes, ("steps", "chars")):
+    fig, axes = plt.subplots(1, len(UNITS), figsize=(6 * len(UNITS), 5))
+    for ax, unit in zip(axes, UNITS):
         g = h[h.unit == unit]
         for lab, gg in g.groupby("policy"):
             ax.errorbar(gg.cost_per_task, gg.solve_rate,

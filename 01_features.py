@@ -126,15 +126,20 @@ def main():
                 steps = steps_of(r["trajectory"])
                 meta = {"traj_id": seen, "instance_id": r["instance_id"], "model_name": r["model_name"],
                         "target": bool(r["target"]), "n_steps": len(steps)}  # n_steps는 정책 비용용, 특징 아님
-                cum = 0
+                # chars: 단계별 새 글자 수 합 / ctx: 매 단계 (프롬프트 + 지금까지 대화 전체)를 다시 입력하는 누적 컨텍스트 비용
+                prompt = sum(len(m["system_prompt"] or "") for m in r["trajectory"] if m["role"] == "system")
+                prompt += next((len(m["text"] or "") for m in r["trajectory"] if m["role"] == "user"), 0)
+                cum = ctx = 0
                 cost = {}
                 for i, st in enumerate(steps, 1):
                     cum += len(st[2]) + len(st[3])
+                    ctx += prompt + cum
                     if i in COST_AT:
-                        cost[f"chars_at_{i}"] = cum
-                for c in COST_AT:
-                    cost.setdefault(f"chars_at_{c}", cum)  # 그 전에 끝났으면 전체 길이
-                metas.append({**meta, "chars_total": cum, **cost})
+                        cost[f"chars_at_{i}"], cost[f"ctx_at_{i}"] = cum, ctx
+                for c in COST_AT:  # 그 전에 끝났으면 전체 비용
+                    cost.setdefault(f"chars_at_{c}", cum)
+                    cost.setdefault(f"ctx_at_{c}", ctx)
+                metas.append({**meta, "chars_total": cum, "ctx_total": ctx, **cost})
                 for k in KS:
                     if len(steps) > k:  # k단계 시점에 아직 실행 중인 궤적만
                         rows.append({**meta, "k": k, **prefix_features(steps, k)})

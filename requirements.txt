@@ -1,0 +1,6 @@
+pandas
+pyarrow
+scikit-learn
+lightgbm
+huggingface_hub
+matplotlib

@@ -20,6 +20,9 @@ OPEN_FILE_RE = re.compile(r"\(Open file: ([^)]*)\)")
 ERR_RE = re.compile(r"Traceback|Error|Exception")
 SYNTAX_FAIL = "Your proposed edit has introduced new syntax error"
 NOT_FOUND_RE = re.compile(r"not found|No such file|No matches found", re.I)
+TEST_PASS_RE = re.compile(r"\d+ passed|^OK$|Script completed successfully", re.M)
+TEST_FAIL_RE = re.compile(r"\d+ failed|FAILED|AssertionError")
+COST_AT = (5, 10, 20, 30, 50, 80)  # 정책 시뮬레이션용 누적 글자 수 체크포인트
 
 
 def action_of(ai_text):
@@ -39,7 +42,7 @@ def action_of(ai_text):
     else:
         a = "other"
     arg = cmd.split("\n", 1)[0]  # 첫 줄(명령+인자)로 반복 여부 판정
-    return a, arg
+    return a, arg, cmd
 
 
 def steps_of(traj):
@@ -54,8 +57,8 @@ def steps_of(traj):
             continue
         ai = msgs[i]["text"] or ""
         obs = msgs[i + 1]["text"] or "" if i + 1 < len(msgs) and msgs[i + 1]["role"] == "user" else ""
-        a, arg = action_of(ai)
-        steps.append((a, arg, ai, obs, open_file))
+        a, arg, cmd = action_of(ai)
+        steps.append((a, arg, ai, obs, open_file, cmd))
         m = OPEN_FILE_RE.findall(obs)
         if m:
             open_file = m[-1]
@@ -94,6 +97,13 @@ def prefix_features(steps, k):
     f["ran_python"] = int(cnt.get("python", 0) > 0)
     f["n_edited_files"] = len({s[i][4] for i in edit_idx if s[i][4]})
 
+    f["n_test_pass"] = sum(bool(TEST_PASS_RE.search(o)) for o in obs)
+    f["n_test_fail"] = sum(bool(TEST_FAIL_RE.search(o)) for o in obs)
+    f["edit_lines"] = sum(max(x[5].count("\n") - 1, 0) for x in s if x[0] == "edit")
+    tail = obs[-5:]
+    f["last5_error"] = sum(bool(ERR_RE.search(o)) or SYNTAX_FAIL in o for o in tail)
+    f["last5_repeat"] = sum(a == b for a, b in zip(args[-6:], args[-5:]))
+
     ai_len = [len(x[2]) for x in s]
     f["ai_chars_total"] = sum(ai_len)
     f["ai_chars_mean"] = sum(ai_len) / k
@@ -116,7 +126,15 @@ def main():
                 steps = steps_of(r["trajectory"])
                 meta = {"traj_id": seen, "instance_id": r["instance_id"], "model_name": r["model_name"],
                         "target": bool(r["target"]), "n_steps": len(steps)}  # n_steps는 정책 비용용, 특징 아님
-                metas.append(meta)
+                cum = 0
+                cost = {}
+                for i, st in enumerate(steps, 1):
+                    cum += len(st[2]) + len(st[3])
+                    if i in COST_AT:
+                        cost[f"chars_at_{i}"] = cum
+                for c in COST_AT:
+                    cost.setdefault(f"chars_at_{c}", cum)  # 그 전에 끝났으면 전체 길이
+                metas.append({**meta, "chars_total": cum, **cost})
                 for k in KS:
                     if len(steps) > k:  # k단계 시점에 아직 실행 중인 궤적만
                         rows.append({**meta, "k": k, **prefix_features(steps, k)})

@@ -50,6 +50,11 @@ def scores(y, p, thr):
             "f1": f1_score(y, p >= thr), "brier": brier_score_loss(y, p), "ece": ece(y, p)}
 
 
+def logit(p):
+    p = np.clip(p, 1e-6, 1 - 1e-6)
+    return np.log(p / (1 - p))
+
+
 def best_f1_threshold(y, p):
     grid = np.quantile(p, np.linspace(0.5, 0.99, 50))
     return max(grid, key=lambda t: f1_score(y, p >= t))
@@ -65,7 +70,7 @@ def main():
     hold = set(rng.choice(inst, size=int(len(inst) * 0.2), replace=False))
     df["holdout"] = df["instance_id"].isin(hold)
 
-    metrics, preds, cross = [], [], []
+    metrics, preds, dev_preds, cross = [], [], [], []
     for k, dk in df.groupby("k"):
         dev, test = dk[~dk.holdout], dk[dk.holdout]
         Xd, yd = xy(dev, feat_cols)
@@ -74,21 +79,34 @@ def main():
         pw = (yd == 0).sum() / max((yd == 1).sum(), 1)
         out = test[META].copy()
 
+        dev_out = dev[META].copy()
         for name in make_models(pw):
             oof = np.zeros(len(yd))
-            for tr, va in GroupKFold(5).split(Xd, yd, dev["instance_id"]):
+            folds = list(GroupKFold(5).split(Xd, yd, dev["instance_id"]))
+            for tr, va in folds:
                 m = make_models(pw)[name].fit(Xd.iloc[tr], yd[tr])
                 oof[va] = m.predict_proba(Xd.iloc[va])[:, 1]
             iso = IsotonicRegression(out_of_bounds="clip").fit(oof, yd)  # OOF로 보정기 학습
             oof_cal = iso.predict(oof)
             thr = best_f1_threshold(yd, oof_cal)
+            # Platt: logit(raw p)에 1차원 로지스틱 회귀
+            platt = LogisticRegression().fit(logit(oof)[:, None], yd)
+
+            # 정책 τ 튜닝용 dev 확률: 보정기도 cross-fit(자기 폴드 제외)으로 in-sample 보정을 피한다
+            oof_xfit = np.zeros(len(yd))
+            for tr, va in folds:
+                oof_xfit[va] = IsotonicRegression(out_of_bounds="clip").fit(oof[tr], yd[tr]).predict(oof[va])
+            dev_out[f"p_{name}"] = oof_xfit
 
             final = make_models(pw)[name].fit(Xd, yd)
             p_raw = final.predict_proba(Xt)[:, 1]
             p = iso.predict(p_raw)
+            p_platt = platt.predict_proba(logit(p_raw)[:, None])[:, 1]
             out[f"p_{name}"] = p
-            metrics.append({"k": k, "model": name, "split": "cv_oof", "n": len(yd), **scores(yd, oof_cal, thr)})
+            metrics.append({"k": k, "model": name, "split": "cv_oof_xfit", "n": len(yd), **scores(yd, oof_xfit, thr)})
             metrics.append({"k": k, "model": name, "split": "holdout_raw", "n": len(yt), **scores(yt, p_raw, best_f1_threshold(yd, oof))})
+            metrics.append({"k": k, "model": name, "split": "holdout_platt", "n": len(yt),
+                            **scores(yt, p_platt, best_f1_threshold(yd, platt.predict_proba(logit(oof)[:, None])[:, 1]))})
             metrics.append({"k": k, "model": name, "split": "holdout", "n": len(yt), **scores(yt, p, thr)})
 
             if name == "lgbm":
@@ -97,6 +115,7 @@ def main():
                               "mean_abs_shap": np.abs(contrib).mean(0)}) \
                     .sort_values("mean_abs_shap", ascending=False).to_csv(f"results/importance_k{k}.csv", index=False)
         preds.append(out)
+        dev_preds.append(dev_out)
 
         # 모델 간 일반화: 한 model_name은 빼고 학습 -> 그 모델로 평가 (LightGBM)
         for held in dk["model_name"].unique():
@@ -115,7 +134,8 @@ def main():
     pd.DataFrame(cross).to_csv("results/cross_model.csv", index=False)
     pr = pd.concat(preds)
     pr.to_parquet("results/holdout_preds.parquet", index=False)
-    print(met[met.split == "holdout"].round(4).to_string(index=False))
+    pd.concat(dev_preds).to_parquet("data/dev_oof_preds.parquet", index=False)  # 커서 git 제외
+    print(met[met.split.str.startswith("holdout")].round(4).to_string(index=False))
 
     fig, ax = plt.subplots(1, 2, figsize=(10, 4))
     h = met[met.split == "holdout"]

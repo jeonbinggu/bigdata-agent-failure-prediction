@@ -7,6 +7,7 @@
 출력: results/policy_dev.csv, results/policy_holdout.csv, results/policy_tradeoff.png
 """
 import itertools
+import os
 import sys
 
 import matplotlib
@@ -16,7 +17,7 @@ import pandas as pd
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
-KS = (10, 20, 30)
+KS = tuple(int(k) for k in os.environ.get("KS", "10,20,30").split(","))  # KS=5,10,20,30 으로 k=5 체크포인트 추가
 BUDGET_STEPS = [60, 100, 150, 200]
 TAU_GRID = [0.0, 0.02, 0.05, 0.1, 0.15]
 CAPS = [30, 50, 80]
@@ -25,7 +26,7 @@ UNITS = ("steps", "chars", "ctx")  # ctx: 매 단계 프롬프트 + 누적 대�
 
 
 PRED = sys.argv[1] if len(sys.argv) > 1 else "p_lgbm"  # p_lgbm / p_gru / p_ens
-SUFFIX = "" if PRED == "p_lgbm" else f"_{PRED}"
+SUFFIX = ("" if PRED == "p_lgbm" else f"_{PRED}") + ("_k5" if 5 in KS else "")
 
 
 def load(pred_path, meta):

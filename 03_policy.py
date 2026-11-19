@@ -1,7 +1,7 @@
 """조기 종료·재시작 정책 오프라인 시뮬레이션.
 
 - 과제마다 예산 B를 주고, 같은 과제의 시도들을 무작위 순서로 '새 세션'처럼 꺼내 쓴다.
-- 비용 단위: steps(행동 수) / chars(ai 출력 + 관찰 글자 수, 토큰 대용)
+- 비용 단위: steps(행동 수) / chars(ai 출력 + 관찰 글자 수, 토큰 대용) / ctx(누적 컨텍스트) / cctx(ctx + 프롬프트 캐싱)
 - 정책: single / random_retry / cap_N / early_stop(체크포인트별 τ)
 - τ와 cap N은 dev(OOF 예측)에서 고르고, 홀드아웃에서 과제 단위 부트스트랩 95% CI로 평가한다.
 출력: results/policy_dev.csv, results/policy_holdout.csv, results/policy_tradeoff.png
@@ -22,11 +22,25 @@ BUDGET_STEPS = [60, 100, 150, 200]
 TAU_GRID = [0.0, 0.02, 0.05, 0.1, 0.15]
 CAPS = [30, 50, 80]
 DEV_SEEDS, HOLD_SEEDS, N_BOOT = 5, 20, 2000
-UNITS = ("steps", "chars", "ctx")  # ctx: 매 단계 프롬프트 + 누적 대화를 다시 입력하는 과금 근사
+UNITS = ("steps", "chars", "ctx", "cctx")  # ctx: 매 단계 프롬프트 + 누적 대화를 다시 입력하는 과금 근사
+CACHE_READ = 0.1  # cctx: 이미 보낸 문맥은 캐시에서 읽어 입력 단가의 10%만 낸다고 가정 (캐시 쓰기 할증·출력 단가 차이는 무시)
 
 
 PRED = sys.argv[1] if len(sys.argv) > 1 else "p_lgbm"  # p_lgbm / p_gru / p_ens
 SUFFIX = ("" if PRED == "p_lgbm" else f"_{PRED}") + ("_k5" if 5 in KS else "")
+
+
+def load_meta():
+    meta = pd.read_parquet("data/meta.parquet")
+    # 매 단계 비용 = 새 글자 + CACHE_READ × 이전 문맥  →  합치면 CACHE_READ·ctx + (1-CACHE_READ)·chars
+    for c in [c[4:] for c in meta.columns if c.startswith("ctx_")]:  # total, at_5, at_10, ...
+        meta[f"cctx_{c}"] = CACHE_READ * meta[f"ctx_{c}"] + (1 - CACHE_READ) * meta[f"chars_{c}"]
+    assert (meta.chars_total <= meta.cctx_total).all() and (meta.cctx_total <= meta.ctx_total).all()
+    return meta
+
+
+def per_step_cost(meta):  # 같은 '평균 단계 수' 예산을 각 비용 단위로 환산하는 계수
+    return {u: 1 if u == "steps" else meta[f"{u}_total"].sum() / meta.n_steps.sum() for u in UNITS}
 
 
 def load(pred_path, meta):
@@ -102,11 +116,11 @@ def policies():
 
 
 def main():
-    meta = pd.read_parquet("data/meta.parquet")
-    chars_per_step = meta.chars_total.sum() / meta.n_steps.sum()
+    meta = load_meta()
+    per_step = per_step_cost(meta)
     dev = load("data/dev_oof_preds.parquet", meta)
     hold = load("results/holdout_preds.parquet", meta)
-    print(f"dev tasks {len(dev)}, holdout tasks {len(hold)}, chars/step {chars_per_step:.0f}")
+    print(f"dev tasks {len(dev)}, holdout tasks {len(hold)}, per-step cost {per_step}")
 
     dev_path, hold_path = f"results/policy_dev{SUFFIX}.csv", f"results/policy_holdout{SUFFIX}.csv"
     dev_rows, hold_rows = [], []
@@ -114,12 +128,11 @@ def main():
         dev_rows, hold_rows = pd.read_csv(dev_path).to_dict("records"), pd.read_csv(hold_path).to_dict("records")
     done = {(r["unit"], r["budget_steps"]) for r in hold_rows}
     rng = np.random.default_rng(0)
-    per_step = {"steps": 1, "chars": chars_per_step, "ctx": meta.ctx_total.sum() / meta.n_steps.sum()}
     for unit in UNITS:
         for Bs in BUDGET_STEPS:
             if (unit, Bs) in done:
                 continue
-            B = Bs * per_step[unit]  # 같은 '평균 단계 수' 예산을 각 비용 단위로 환산
+            B = Bs * per_step[unit]
             # 1) dev에서 모든 정책 평가 → cap / early_stop 최적값 선택
             res = {}
             for name, kw in policies():

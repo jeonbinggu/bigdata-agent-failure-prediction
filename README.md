@@ -17,7 +17,7 @@ python 04_gru.py --oof  # GRU + dev OOF → 예측 파일에 p_gru, p_ens 추가
 python 03_policy.py p_ens   # 앙상블 확률로 정책 (출력 *_p_ens.*)
 python 04_gru.py --seeds 5  # GRU 시드 분산 평가 → results/gru_seeds.csv
 python 05_oracle.py         # 천장: 오라클 정책(정답을 k에서 미리 앎) + 해결 가능 비율 → results/oracle_holdout.csv
-KS=5,10,20,30 python 03_policy.py p_ens  # k=5 체크포인트 추가 (출력 *_p_ens_k5.*)
+KS=5,10,20,30 python 03_policy.py p_ens  # k=5 체크포인트 추가 (출력 *_p_ens_k5.*). 중단되면 RESUME=1 을 붙여 이어서 실행
 ```
 
 ## 파이프라인

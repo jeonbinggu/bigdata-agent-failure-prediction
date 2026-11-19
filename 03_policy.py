@@ -108,11 +108,17 @@ def main():
     hold = load("results/holdout_preds.parquet", meta)
     print(f"dev tasks {len(dev)}, holdout tasks {len(hold)}, chars/step {chars_per_step:.0f}")
 
+    dev_path, hold_path = f"results/policy_dev{SUFFIX}.csv", f"results/policy_holdout{SUFFIX}.csv"
     dev_rows, hold_rows = [], []
+    if os.environ.get("RESUME") and os.path.exists(hold_path):  # 중단된 실행 이어가기: 끝난 (unit, 예산)은 건너뛴다
+        dev_rows, hold_rows = pd.read_csv(dev_path).to_dict("records"), pd.read_csv(hold_path).to_dict("records")
+    done = {(r["unit"], r["budget_steps"]) for r in hold_rows}
     rng = np.random.default_rng(0)
     per_step = {"steps": 1, "chars": chars_per_step, "ctx": meta.ctx_total.sum() / meta.n_steps.sum()}
     for unit in UNITS:
         for Bs in BUDGET_STEPS:
+            if (unit, Bs) in done:
+                continue
             B = Bs * per_step[unit]  # 같은 '평균 단계 수' 예산을 각 비용 단위로 환산
             # 1) dev에서 모든 정책 평가 → cap / early_stop 최적값 선택
             res = {}
@@ -138,11 +144,11 @@ def main():
                         row[f"diff_vs_{base}"], row[f"diff_vs_{base}_lo"], row[f"diff_vs_{base}_hi"] = d.mean(), dlo, dhi
                         row[f"cost_diff_vs_{base}"] = r[:, 1].mean() - per_task[base][:, 1].mean()
                 hold_rows.append(row)
+            pd.DataFrame(dev_rows).to_csv(dev_path, index=False)  # 조건마다 저장 → 중단돼도 진행분 유지
+            pd.DataFrame(hold_rows).to_csv(hold_path, index=False)
             print(f"{unit} B={Bs} done (cap={best_cap}, es={best_es})", flush=True)
 
-    pd.DataFrame(dev_rows).to_csv(f"results/policy_dev{SUFFIX}.csv", index=False)
     h = pd.DataFrame(hold_rows)
-    h.to_csv(f"results/policy_holdout{SUFFIX}.csv", index=False)
     cols = ["unit", "budget_steps", "policy", "config", "solve_rate", "solve_ci_lo", "solve_ci_hi",
             "cost_per_task", "wrong_stop_rate", "diff_vs_random_retry", "diff_vs_random_retry_lo", "diff_vs_random_retry_hi"]
     print(h[cols].round(4).to_string(index=False))

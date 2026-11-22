@@ -23,6 +23,12 @@ import matplotlib.pyplot as plt  # noqa: E402
 META = ["traj_id", "instance_id", "model_name", "target", "n_steps", "k"]
 SEED = 0
 os.makedirs("results", exist_ok=True)
+# 보안 위협 사전 경고: TARGET=y_tamper|y_risky FEAT=data/features_sec.parquet python 02_train.py
+TARGET = os.environ.get("TARGET", "target")
+FEAT = os.environ.get("FEAT", "data/features.parquet")
+SFX = "" if TARGET == "target" else f"_{TARGET}"  # 기존 실패 예측 출력은 그대로 둔다
+LABELS = ["y_tamper", "t_tamper", "y_risky", "t_risky"]  # 특징이 아님
+BUDGETS = (0.01, 0.02, 0.05, 0.10)  # 검토 예산: 위험 점수 상위 몇 %를 사람이 보는가
 
 
 def make_models(pos_weight):
@@ -36,7 +42,7 @@ def make_models(pos_weight):
 
 def xy(df, feat_cols):
     X = pd.get_dummies(df[feat_cols + ["model_name"]], columns=["model_name"], dtype=float)
-    return X, df["target"].astype(int).values
+    return X, df[TARGET].astype(int).values
 
 
 def ece(y, p, bins=10):
@@ -45,9 +51,18 @@ def ece(y, p, bins=10):
                for b in range(bins) if (idx == b).any())
 
 
+def recall_at(y, p, frac):
+    top = np.argsort(-p, kind="stable")[:max(int(len(p) * frac), 1)]
+    return y[top].sum() / max(y.sum(), 1)
+
+
 def scores(y, p, thr):
-    return {"roc_auc": roc_auc_score(y, p), "pr_auc": average_precision_score(y, p),
-            "f1": f1_score(y, p >= thr), "brier": brier_score_loss(y, p), "ece": ece(y, p)}
+    out = {"roc_auc": roc_auc_score(y, p), "pr_auc": average_precision_score(y, p),
+           "f1": f1_score(y, p >= thr), "brier": brier_score_loss(y, p), "ece": ece(y, p)}
+    if TARGET != "target":
+        out.update({f"recall@{int(b * 100)}%": recall_at(y, p, b) for b in BUDGETS})
+        out["base_rate"] = y.mean()
+    return out
 
 
 def logit(p):
@@ -61,8 +76,14 @@ def best_f1_threshold(y, p):
 
 
 def main():
-    df = pd.read_parquet("data/features.parquet")
-    feat_cols = [c for c in df.columns if c not in META]
+    df = pd.read_parquet(FEAT)
+    if TARGET != "target":
+        # 사전 경고: 양성은 사건이 아직 안 일어난 prefix(t > k)만. 시점을 못 찾은 양성(t=0)은 뺀다
+        t = df["t" + TARGET[1:]]
+        df = df[(df[TARGET] == 0) | (t > df["k"])].copy()
+        assert ((df[TARGET] == 0) | (df["t" + TARGET[1:]] > df["k"])).all()
+    feat_cols = [c for c in df.columns if c not in META + LABELS]
+    KEEP = META + [c for c in LABELS if c in df.columns]  # 예측 파일에 라벨/시점도 남긴다
 
     # 과제 단위 홀드아웃 20% (모든 k에서 동일)
     inst = df["instance_id"].unique()
@@ -77,9 +98,9 @@ def main():
         Xt, yt = xy(test, feat_cols)
         Xt = Xt.reindex(columns=Xd.columns, fill_value=0)
         pw = (yd == 0).sum() / max((yd == 1).sum(), 1)
-        out = test[META].copy()
+        out = test[KEEP].copy()
 
-        dev_out = dev[META].copy()
+        dev_out = dev[KEEP].copy()
         for name in make_models(pw):
             oof = np.zeros(len(yd))
             folds = list(GroupKFold(5).split(Xd, yd, dev["instance_id"]))
@@ -113,7 +134,7 @@ def main():
                 contrib = final.booster_.predict(Xt, pred_contrib=True)[:, :-1]  # TreeSHAP
                 pd.DataFrame({"feature": Xd.columns, "gain": final.booster_.feature_importance("gain"),
                               "mean_abs_shap": np.abs(contrib).mean(0)}) \
-                    .sort_values("mean_abs_shap", ascending=False).to_csv(f"results/importance_k{k}.csv", index=False)
+                    .sort_values("mean_abs_shap", ascending=False).to_csv(f"results/importance_k{k}{SFX}.csv", index=False)
         preds.append(out)
         dev_preds.append(dev_out)
 
@@ -130,11 +151,11 @@ def main():
         print(f"k={k} done", flush=True)
 
     met = pd.DataFrame(metrics)
-    met.to_csv("results/metrics.csv", index=False)
-    pd.DataFrame(cross).to_csv("results/cross_model.csv", index=False)
+    met.to_csv(f"results/metrics{SFX}.csv", index=False)
+    pd.DataFrame(cross).to_csv(f"results/cross_model{SFX}.csv", index=False)
     pr = pd.concat(preds)
-    pr.to_parquet("results/holdout_preds.parquet", index=False)
-    pd.concat(dev_preds).to_parquet("data/dev_oof_preds.parquet", index=False)  # 커서 git 제외
+    pr.to_parquet(f"results/holdout_preds{SFX}.parquet", index=False)
+    pd.concat(dev_preds).to_parquet(f"data/dev_oof_preds{SFX}.parquet", index=False)  # 커서 git 제외
     print(met[met.split.str.startswith("holdout")].round(4).to_string(index=False))
 
     fig, ax = plt.subplots(1, 2, figsize=(10, 4))
@@ -146,17 +167,17 @@ def main():
         a.set_xlabel("k (prefix steps)")
         a.legend()
     fig.tight_layout()
-    fig.savefig("results/k_curve.png", dpi=120)
+    fig.savefig(f"results/k_curve{SFX}.png", dpi=120)
 
     fig, ax = plt.subplots(figsize=(5, 5))
     for k, g in pr.groupby("k"):
-        fy, fx = calibration_curve(g.target, g.p_lgbm, n_bins=10, strategy="quantile")
+        fy, fx = calibration_curve(g[TARGET], g.p_lgbm, n_bins=10, strategy="quantile")
         ax.plot(fx, fy, "o-", label=f"k={k}")
     ax.plot([0, 1], [0, 1], "k--")
     ax.set_xlabel("predicted p (lgbm, isotonic)")
     ax.set_ylabel("observed success rate")
     ax.legend()
-    fig.savefig("results/calibration.png", dpi=120)
+    fig.savefig(f"results/calibration{SFX}.png", dpi=120)
 
 
 if __name__ == "__main__":

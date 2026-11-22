@@ -1,0 +1,18 @@
+6670 trajectories
+13340 trajectories
+20010 trajectories
+26680 trajectories
+33350 trajectories
+40020 trajectories
+46690 trajectories
+53360 trajectories
+60029 trajectories
+66698 trajectories
+73367 trajectories
+80036 trajectories
+        n    tamper     risky
+k                            
+5   76182  0.009320  0.058793
+10  59708  0.009965  0.067445
+20  34059  0.008573  0.081594
+30  22479  0.004938  0.091908

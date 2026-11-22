@@ -3,7 +3,7 @@
 - 입력 캐시 data/seqs_sec.npz: 궤적별 앞 30단계의 행동 토큰(edit_test·risky 포함 14종) + 단계별 신호 11개
 - GRU: 토큰 임베딩 + 신호 → GRU → (모델 one-hot) → 확률
 - GCN: prefix를 행동 전이 그래프(노드 14 = 행동 종류, 간선 = 전이 횟수)로 바꿔 2층 GCN + mean/max readout
-- 앙상블: LR·GRU·GCN 확률(각각 isotonic 보정) 평균. LR은 dev 교차검증에서 LightGBM보다 앞서 표 형식 대표로 씀
+- GRU·GCN은 시드 SEEDS개(기본 5)로 학습해 보정 확률을 평균. 앙상블: LR·GRU·GCN 확률 평균. LR은 dev 교차검증에서 LightGBM보다 앞서 표 형식 대표로 씀
 사용: TARGET=y_tamper python 09_seq_graph.py   (먼저 02_train.py를 같은 TARGET으로 실행)
 출력: results/seqgraph_metrics_{TARGET}.csv, results/holdout_preds_{TARGET}.parquet 에 p_gru·p_gcn·p_ens 열 추가
 """
@@ -27,6 +27,7 @@ FM, L, F = S.FM, S.L, S.F
 
 TARGET = os.environ.get("TARGET", "y_tamper")
 SEQ, KS, SEED = 30, (5, 10, 20, 30), 0
+N_SEEDS = int(os.environ.get("SEEDS", 5))
 NT, NN = len(FM.TOK), 11
 BUDGETS = (0.01, 0.02, 0.05, 0.10)
 torch.manual_seed(SEED)
@@ -118,7 +119,7 @@ def predict(model, inp, bs=4096):
         return np.concatenate([torch.sigmoid(model(*(z[i:i + bs] for z in inp))).numpy() for i in range(0, n, bs)])
 
 
-def train(make, inp, y, va, epochs=20, bs=512, patience=4):
+def train(make, inp, y, va, epochs=20, bs=512, patience=4, seed=0):
     model = make()
     opt = torch.optim.Adam(model.parameters(), lr=2e-3)
     tr = np.where(~va)[0]
@@ -128,7 +129,7 @@ def train(make, inp, y, va, epochs=20, bs=512, patience=4):
     best, state, bad = -1, None, 0
     for ep in range(epochs):
         model.train()
-        np.random.default_rng(ep).shuffle(tr)
+        np.random.default_rng(ep + 1000 * seed).shuffle(tr)
         for i in range(0, len(tr), bs):
             b = tr[i:i + bs]
             opt.zero_grad()
@@ -178,22 +179,29 @@ def main():
         d = np.where(~is_h)[0]
         h = np.where(is_h)[0]
         out = {"traj_id": hk.traj_id.values, "k": k}
+        v = d[is_v[d]]
         for name, make in (("gru", lambda: GRU(len(models))), ("gcn", lambda: GCN(len(models), nf.shape[-1]))):
-            torch.manual_seed(SEED)
-            mdl = train(make, [z[d] for z in inp], y[d], is_v[d])
-            v = d[is_v[d]]
-            iso = IsotonicRegression(out_of_bounds="clip").fit(predict(mdl, [z[v] for z in inp]), y[v])
-            p_raw = predict(mdl, [z[h] for z in inp])
-            out[f"p_{name}"] = iso.predict(p_raw)
-            rows.append({"k": k, "model": name, **scores(y[h], p_raw)})
+            ps = []
+            for s in range(N_SEEDS):  # 시드마다 초기값·배치 순서가 다르다. 확률은 시드 평균
+                torch.manual_seed(s)
+                mdl = train(make, [z[d] for z in inp], y[d], is_v[d], seed=s)
+                iso = IsotonicRegression(out_of_bounds="clip").fit(predict(mdl, [z[v] for z in inp]), y[v])
+                p_raw = predict(mdl, [z[h] for z in inp])
+                ps.append(iso.predict(p_raw))
+                rows.append({"k": k, "model": name, "seed": s, **scores(y[h], p_raw)})
+            out[f"p_{name}"] = np.mean(ps, 0)
+            rows.append({"k": k, "model": f"{name}(seed avg)", "seed": -1, **scores(y[h], out[f"p_{name}"])})
         # 표 형식 대표는 dev 교차검증(cv_oof_xfit)에서 앞선 LR (희귀 양성에서 LightGBM이 과적합)
         out["p_ens"] = (hk.p_lr.values + out["p_gru"] + out["p_gcn"]) / 3
         for name in ("lr", "lgbm"):
-            rows.append({"k": k, "model": name, **scores(y[h], hk[f"p_{name}"].values)})
-        rows.append({"k": k, "model": "ens(lr+gru+gcn)", **scores(y[h], out["p_ens"])})
+            rows.append({"k": k, "model": name, "seed": -1, **scores(y[h], hk[f"p_{name}"].values)})
+        rows.append({"k": k, "model": "ens(lr+gru+gcn)", "seed": -1, **scores(y[h], out["p_ens"])})
         add.append(pd.DataFrame(out))
-        print(pd.DataFrame(rows[-5:]).round(4).to_string(index=False), flush=True)
-    pd.DataFrame(rows).to_csv(f"results/seqgraph_metrics_{TARGET}.csv", index=False)
+        print(pd.DataFrame([r for r in rows if r["k"] == k and r["seed"] == -1]).round(4).to_string(index=False), flush=True)
+    res = pd.DataFrame(rows)
+    res.to_csv(f"results/seqgraph_metrics_{TARGET}.csv", index=False)
+    # 시드 간 변동: 단일 시드 성능의 평균±표준편차
+    print(res[res.seed >= 0].groupby(["k", "model"])[["roc_auc", "pr_auc", "recall@5%"]].agg(["mean", "std"]).round(4))
     hold.merge(pd.concat(add), on=["traj_id", "k"], how="left").to_parquet(hold_path, index=False)
 
 

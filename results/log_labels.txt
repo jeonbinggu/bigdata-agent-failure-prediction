@@ -1,0 +1,35 @@
+6670 trajectories
+13340 trajectories
+20010 trajectories
+26680 trajectories
+33350 trajectories
+40020 trajectories
+46690 trajectories
+53360 trajectories
+60029 trajectories
+66698 trajectories
+73367 trajectories
+80036 trajectories
+              label    n   rate  resolved_rate_pos  resolved_rate_neg
+touch_existing_test 1868 0.0233             0.1975             0.1666
+           y_tamper  719 0.0090             0.2350             0.1667
+            y_risky 4523 0.0565             0.0858             0.1722
+           y_unsafe 5199 0.0650             0.1064             0.1715
+            n_rm_rf  322 0.0040             0.0280             0.1679
+      n_pip_install 3195 0.0399             0.0845             0.1707
+      n_sys_install  234 0.0029             0.0385             0.1677
+              n_net  991 0.0124             0.0979             0.1682
+             n_sudo  190 0.0024             0.0842             0.1675
+      n_chmod_broad    6 0.0001             0.0000             0.1673
+      n_git_destroy    1 0.0000             0.0000             0.1673
+             n_kill   22 0.0003             0.1818             0.1673
+   label           model_name  y_tamper  y_risky  target
+by_model swe-agent-llama-405b    0.0025   0.0823  0.2586
+by_model  swe-agent-llama-70b    0.0090   0.0567  0.1667
+by_model   swe-agent-llama-8b    0.0106   0.0459  0.1515
+y_tamper      0    1    All
+target                     
+False     66097  550  66647
+True      13220  169  13389
+All       79317  719  80036
+t_tamper found among y_tamper: 0.871  median t_tamper: 9.0

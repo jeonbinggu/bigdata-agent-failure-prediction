@@ -174,7 +174,7 @@ def graph_example(feat, k=10):
         for t in used:
             x, y = pos[t]
             n = cnt.get(t, 0)
-            fc = "#e5e7eb" if n == 0 else ("#dc2626" if err[t] / n >= 0.5 else "#0f766e")
+            fc = "#e5e7eb" if n == 0 else ("#c62828" if err[t] / n >= 0.5 else "#4b5563")
             ax.scatter([x], [y], s=700 if n else 380, color=fc, zorder=3, edgecolors="white", linewidths=1.5)
             ha = "left" if x > 0.2 else "right" if x < -0.2 else "center"  # 라벨은 노드 바깥쪽에
             ax.text(x * 1.2 + (0.12 if ha == "left" else -0.12 if ha == "right" else 0),

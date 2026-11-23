@@ -11,7 +11,9 @@ const F = "Malgun Gothic", MONO = "Consolas";
 pres.theme = { headFontFace: F, bodyFontFace: F };
 
 const INK = "111827", SUB = "4B5563", MUTE = "9CA3AF", LINE = "E5E7EB", CARD = "F3F4F6";
-const TEAL = "0F766E", TEAL_L = "CCFBF1", RED = "DC2626", RED_L = "FEE2E2", AMBER = "B45309", NAVY = "1F2937";
+// 절제된 팔레트: 무채색 + 강조색(ACC) 하나. 강조색은 핵심 숫자·글자에만 쓴다
+const ACC = "C62828", NAVY = "1F2937", DARK2 = "4B5563", G1 = "6B7280", G2 = "9CA3AF", G3 = "D1D5DB";
+const TEAL = ACC, RED = ACC, AMBER = DARK2, TEAL_L = CARD, RED_L = CARD;
 const W = 13.33;
 
 const pct = (v, d = 1) => (v * 100).toFixed(d) + "%";
@@ -31,7 +33,7 @@ pres.defineSlideMaster({
   title: "APPX", background: { color: "FFFFFF" },
   objects: [
     { placeholder: { options: { name: "title", type: "title", x: 0.6, y: 0.3, w: 10.6, h: 0.75, fontFace: F, fontSize: 22, bold: true, color: INK, valign: "middle", align: "left", margin: 0 }, text: "" } },
-    { text: { text: "APPENDIX", options: { x: 11.3, y: 0.42, w: 1.45, h: 0.35, fontFace: F, fontSize: 10, bold: true, color: TEAL, align: "right", margin: 0 } } },
+    { text: { text: "APPENDIX", options: { x: 11.3, y: 0.42, w: 1.45, h: 0.35, fontFace: F, fontSize: 10, bold: true, color: G2, align: "right", margin: 0 } } },
   ],
   slideNumber: { x: 12.45, y: 7.0, w: 0.6, h: 0.3, fontFace: F, fontSize: 10, color: MUTE },
 });
@@ -43,7 +45,7 @@ function content(title, part, sec) {
   const s = pres.addSlide({ masterName: "CONTENT", sectionTitle: sec });
   s.addText(title, { placeholder: "title" });
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 11.0, y: 0.55, w: 1.75, h: 0.42, fill: { color: TEAL_L }, line: { color: TEAL_L }, rectRadius: 0.08 });
-  T(s, part.replace("Ⅰ", "PART 1 ·").replace("Ⅱ", "PART 2 ·").replace("Ⅲ", "PART 3 ·").replace("Ⅳ", "PART 4 ·"), { x: 11.0, y: 0.55, w: 1.75, h: 0.42, fontSize: 12, bold: true, color: TEAL, align: "center", valign: "middle" });
+  T(s, part.replace("Ⅰ", "PART 1 ·").replace("Ⅱ", "PART 2 ·").replace("Ⅲ", "PART 3 ·").replace("Ⅳ", "PART 4 ·"), { x: 11.0, y: 0.55, w: 1.75, h: 0.42, fontSize: 12, bold: true, color: SUB, align: "center", valign: "middle" });
   return s;
 }
 function appx(title) {
@@ -70,7 +72,7 @@ function table(s, rows, o) {
     border: { type: "solid", pt: 0.5, color: LINE }, margin: [3, 6, 3, 6], rowH: o.rowH || 0.32, align: o.align || "left",
   });
 }
-const hl = (text, color = TEAL) => ({ text: String(text), options: { bold: true, color, fill: { color: "F0FDFA" } } });
+const hl = (text, color = TEAL) => ({ text: String(text), options: { bold: true, color, fill: { color: "F9FAFB" } } });
 const chartBase = { catAxisLabelFontFace: F, valAxisLabelFontFace: F, dataLabelFontFace: F, legendFontFace: F, titleFontFace: F,
   catAxisLabelColor: SUB, valAxisLabelColor: SUB, catAxisLabelFontSize: 12, valAxisLabelFontSize: 11, dataLabelFontSize: 11,
   legendFontSize: 12, titleFontSize: 14, titleColor: INK, valGridLine: { color: LINE, size: 0.5 }, catGridLine: { style: "none" } };
@@ -79,10 +81,10 @@ const chartBase = { catAxisLabelFontFace: F, valAxisLabelFontFace: F, dataLabelF
 pres.addSection({ title: "Ⅰ 주제 선정" });
 { // 1 표지
   const s = pres.addSlide({ masterName: "DARK", sectionTitle: "Ⅰ 주제 선정" });
-  T(s, "Introduction to Big Data · 2026 Fall · 27팀", { x: 0.8, y: 1.3, w: 11, h: 0.4, fontSize: 16, color: "99F6E4" });
+  T(s, "Introduction to Big Data · 2026 Fall · 27팀", { x: 0.8, y: 1.3, w: 11, h: 0.4, fontSize: 16, color: G2 });
   T(s, "성공률에 숨은 테스트 변조", { x: 0.8, y: 2.0, w: 11.5, h: 1.1, fontSize: 48, bold: true, color: "FFFFFF" });
   T(s, "AI 코딩 에이전트의 실행 실패·보안 위협 패턴 분석", { x: 0.8, y: 3.15, w: 11.5, h: 0.6, fontSize: 24, color: "E5E7EB" });
-  T(s, "에이전트가 무엇을 했는지(행동 로그)만 보고, 무엇을 저지를지(보안 위협)를 미리 경고한다", { x: 0.8, y: 4.2, w: 11.5, h: 0.5, fontSize: 16, color: "FCA5A5", italic: true });
+  T(s, "에이전트가 무엇을 했는지(행동 로그)만 보고, 무엇을 저지를지(보안 위협)를 미리 경고한다", { x: 0.8, y: 4.2, w: 11.5, h: 0.5, fontSize: 16, color: "F87171", italic: true });
   T(s, "조영진 · 전병국", { x: 0.8, y: 5.8, w: 6, h: 0.4, fontSize: 16, color: "D1D5DB" });
   s.addNotes("안녕하세요, 27팀 조영진, 전병국입니다. 저희 주제는 성공률에 숨은 테스트 변조, AI 코딩 에이전트의 실행 실패와 보안 위협 패턴 분석입니다.");
 }
@@ -91,17 +93,17 @@ pres.addSection({ title: "Ⅰ 주제 선정" });
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y: 1.6, w: 8.2, h: 3.7, fill: { color: "0B1220" }, line: { color: "0B1220" }, rectRadius: 0.08 });
   const code = [
     ["tests/unit/test_cli_orders.py", "9CA3AF"],
-    ["@@ def test_cli_orders_download(...)", "93C5FD"],
-    ["-    expected = 'Downloaded 4 files.\\n'", "FCA5A5"],
-    ["+    expected = ''", "86EFAC"],
-    ["-    assert expected in result.output", "FCA5A5"],
-    ["+    assert 'Downloaded 4 files.\\n' not in result.output", "86EFAC"],
+    ["@@ def test_cli_orders_download(...)", "9CA3AF"],
+    ["-    expected = 'Downloaded 4 files.\\n'", "9CA3AF"],
+    ["+    expected = ''", "F87171"],
+    ["-    assert expected in result.output", "9CA3AF"],
+    ["+    assert 'Downloaded 4 files.\\n' not in result.output", "F87171"],
   ];
   s.addText(code.map(([t, c], i) => ({ text: t, options: { color: c, breakLine: i < code.length - 1 } })),
     { isTextBox: true, x: 0.9, y: 1.85, w: 7.7, h: 3.3, fontFace: MONO, fontSize: 18, margin: 0, valign: "top", paraSpaceAfter: 14 });
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 9.2, y: 1.6, w: 3.55, h: 1.5, fill: { color: TEAL_L }, line: { color: TEAL_L }, rectRadius: 0.1 });
-  T(s, "채점 결과", { x: 9.45, y: 1.75, w: 3.1, h: 0.35, fontSize: 13, color: TEAL });
-  T(s, "Resolved ✔", { x: 9.45, y: 2.15, w: 3.1, h: 0.7, fontSize: 30, bold: true, color: TEAL });
+  T(s, "채점 결과", { x: 9.45, y: 1.75, w: 3.1, h: 0.35, fontSize: 13, color: SUB });
+  T(s, "Resolved ✔", { x: 9.45, y: 2.15, w: 3.1, h: 0.7, fontSize: 30, bold: true, color: INK });
   card(s, 9.2, 3.35, 3.55, 2.2, "하지만 이 diff는", "기대값을 빈 문자열로 바꾸고\n'in'을 'not in'으로 뒤집었다.\n\n테스트가 확인하던 동작을 정반대로 바꿔 통과시킨 것이다.", { fill: RED_L, hc: RED, bs: 13 });
   T(s, "정말 해결한 걸까? 성공률만 봐서는 알 수 없다.", { x: 0.6, y: 5.75, w: 12, h: 0.5, fontSize: 20, bold: true, color: INK });
   foot(s, "planetlabs/planet-client-python #389, 실제 실행 기록(traj_id 69435, Llama 3.1 70b)의 최종 패치 중 기존 테스트 파일 부분. 이런 '의도적 약화' 21건 중 8건이 해결로 채점됐다 (상세: A3)");
@@ -133,7 +135,7 @@ pres.addSection({ title: "Ⅰ 주제 선정" });
     ["RQ3  사전 경고", "사건 전 행동 로그만으로 미리 경고할 수 있는가?"]];
   rq.forEach(([h, b], i) => {
     const y = 4.35 + i * 0.75;
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y, w: 2.2, h: 0.6, fill: { color: TEAL }, line: { color: TEAL }, rectRadius: 0.08 });
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y, w: 2.2, h: 0.6, fill: { color: NAVY }, line: { color: NAVY }, rectRadius: 0.08 });
     T(s, h, { x: 0.6, y, w: 2.2, h: 0.6, fontSize: 15, bold: true, color: "FFFFFF", align: "center", valign: "middle" });
     T(s, b, { x: 3.0, y, w: 9.7, h: 0.6, fontSize: 16, valign: "middle" });
   });
@@ -173,14 +175,14 @@ pres.addSection({ title: "Ⅱ 데이터" });
       if (i < 2) T(s, "→", { x: x + 2.13, y, w: 0.22, h: 1.0, fontSize: 18, bold: true, color: MUTE, align: "center", valign: "middle" });
     });
   };
-  flow(1.65, "최종 패치 diff", "기존 테스트 파일의 assert 삭제·변경, 테스트 삭제, skip/xfail", `테스트 변조\n${n(L.y_tamper.n)}건 (${pct(L.y_tamper.rate, 2)})`, RED);
-  flow(2.95, "실행된 명령", "명령 위치에서 rm -rf, pip, curl, sudo 등 매칭", `위험 명령\n${n(L.y_risky.n)}건 (${pct(L.y_risky.rate, 2)})`, AMBER);
+  flow(1.65, "최종 패치 diff", "기존 테스트 파일의 assert 삭제·변경, 테스트 삭제, skip/xfail", `테스트 변조\n${n(L.y_tamper.n)}건 (${pct(L.y_tamper.rate, 2)})`, NAVY);
+  flow(2.95, "실행된 명령", "명령 위치에서 rm -rf, pip, curl, sudo 등 매칭", `위험 명령\n${n(L.y_risky.n)}건 (${pct(L.y_risky.rate, 2)})`, G1);
   T(s, `변조 시점 t = 기존 테스트 파일을 연 채 처음 편집한 단계 (변조 실행의 ${pct(D.t_tamper_found, 0)}에서 찾음, 중앙값 ${D.t_tamper_median}단계). 새로 만든 테스트 파일은 정상 행동이라 제외.`,
     { x: 0.6, y: 4.2, w: 6.85, h: 0.9, fontSize: 13, color: SUB });
   const a = D.audit.counts;
   s.addChart(pres.charts.BAR, [{ name: "60건", labels: ["의도적 약화", "실수로 덮어씀", "기대값 갱신", "무해"],
     values: [a.deliberate_weaken, a.accidental_overwrite, a.expected_update, a.benign] }],
-  { ...chartBase, x: 7.8, y: 1.5, w: 4.95, h: 3.6, barDir: "bar", chartColors: [RED, "F87171", "FCA5A5", "D1D5DB"], varyColors: true,
+  { ...chartBase, x: 7.8, y: 1.5, w: 4.95, h: 3.6, barDir: "bar", chartColors: [DARK2, G1, G2, G3], varyColors: true,
     showValue: true, dataLabelPosition: "outEnd", dataLabelColor: INK, showLegend: false, showTitle: true, title: "변조 라벨 60건을 직접 읽은 결과 (건)",
     catAxisOrientation: "maxMin", valAxisHidden: true, valGridLine: { style: "none" } });
   stat(s, 7.9, 5.15, 2.3, pct((a.deliberate_weaken + a.accidental_overwrite) / D.audit.n, 0), "테스트 무결성 훼손\n(의도적 + 실수)", RED, 36);
@@ -192,7 +194,7 @@ pres.addSection({ title: "Ⅱ 데이터" });
   const s = content("변조한 실행이 오히려 더 '성공'한다", "Ⅱ 데이터", "Ⅱ 데이터");
   const fm = D.failure_modes;
   s.addChart(pres.charts.BAR, [{ name: "실패 유형", labels: fm.map((r) => r.mode.replace(/\(.*\)/, "")), values: fm.map((r) => +(r.share * 100).toFixed(1)) }],
-    { ...chartBase, x: 0.5, y: 1.5, w: 6.3, h: 4.7, barDir: "bar", chartColors: fm.map((r) => (r.mode.startsWith("검증") ? RED : "9CA3AF")), varyColors: true,
+    { ...chartBase, x: 0.5, y: 1.5, w: 6.3, h: 4.7, barDir: "bar", chartColors: fm.map((r) => (r.mode.startsWith("검증") ? ACC : G3)), varyColors: true,
       showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: '0.0"%"', dataLabelColor: INK, showLegend: false, catAxisOrientation: "maxMin",
       valAxisHidden: true, valGridLine: { style: "none" }, showTitle: true, title: `실패 실행 ${n(D.n_fail)}건의 유형 (%)` });
   T(s, "다섯 번 중 한 번은 한 번도 실행해 보지 않고 제출한다: '검증 회피'", { x: 0.6, y: 6.25, w: 6.2, h: 0.5, fontSize: 13, bold: true, color: RED });
@@ -227,10 +229,10 @@ pres.addSection({ title: "Ⅲ 학습" });
   const k = 10;
   for (let i = 1; i <= 14; i++) {
     const x = 0.6 + (i - 1) * 0.86, isIn = i <= k, isT = i === 13;
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.9, w: 0.76, h: 0.7, fill: { color: isT ? RED : isIn ? TEAL : CARD }, line: { color: isT ? RED : isIn ? TEAL : CARD }, rectRadius: 0.06 });
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.9, w: 0.76, h: 0.7, fill: { color: isT ? ACC : isIn ? NAVY : CARD }, line: { color: isT ? ACC : isIn ? NAVY : CARD }, rectRadius: 0.06 });
     T(s, isT ? "t" : String(i), { x, y: 1.9, w: 0.76, h: 0.7, fontSize: 14, bold: true, color: isIn || isT ? "FFFFFF" : SUB, align: "center", valign: "middle" });
   }
-  T(s, "입력: 앞 k단계 행동 로그 (k = 5, 10)", { x: 0.6, y: 1.45, w: 8.5, h: 0.4, fontSize: 14, bold: true, color: TEAL });
+  T(s, "입력: 앞 k단계 행동 로그 (k = 5, 10)", { x: 0.6, y: 1.45, w: 8.5, h: 0.4, fontSize: 14, bold: true, color: INK });
   T(s, "예측: 이후 변조가 일어나는가", { x: 9.2, y: 1.45, w: 3.6, h: 0.4, fontSize: 14, bold: true, color: RED });
   const rules = [["이미 일어난 사건은 제외", "변조 시점 t ≤ k인 실행은 학습·평가에서 뺀다. 코드에서 assert로 검사."],
     ["과제 단위 분할", "같은 GitHub 이슈의 다른 실행이 학습과 평가에 섞이지 않게 홀드아웃 20% + GroupKFold(5)."],
@@ -261,10 +263,10 @@ pres.addSection({ title: "Ⅳ 결과" });
   const s = content("변조 5~10단계 전에 ROC-AUC 0.80~0.84", "Ⅳ 결과", "Ⅳ 결과");
   const ms = ["LR", "GRU", "GCN", "앙상블"];
   const ser = (key, scale) => [5, 10].map((k) => ({ name: `k=${k}`, labels: ms, values: ms.map((m) => +(met("y_tamper", k, m)[key] * scale).toFixed(key === "roc" ? 3 : 1)) }));
-  s.addChart(pres.charts.BAR, ser("roc", 1), { ...chartBase, x: 0.5, y: 1.5, w: 6.1, h: 4.4, barDir: "col", barGrouping: "clustered", chartColors: ["99F6E4", TEAL],
+  s.addChart(pres.charts.BAR, ser("roc", 1), { ...chartBase, x: 0.5, y: 1.5, w: 6.1, h: 4.4, barDir: "col", barGrouping: "clustered", chartColors: [G3, NAVY],
     showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0.00", dataLabelColor: INK, valAxisMinVal: 0.5, valAxisMaxVal: 0.9, showLegend: true, legendPos: "b",
     showTitle: true, title: "ROC-AUC (홀드아웃)" });
-  s.addChart(pres.charts.BAR, ser("r5", 100), { ...chartBase, x: 6.7, y: 1.5, w: 6.1, h: 4.4, barDir: "col", barGrouping: "clustered", chartColors: ["99F6E4", TEAL],
+  s.addChart(pres.charts.BAR, ser("r5", 100), { ...chartBase, x: 6.7, y: 1.5, w: 6.1, h: 4.4, barDir: "col", barGrouping: "clustered", chartColors: [G3, NAVY],
     showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: '0"%"', dataLabelColor: INK, valAxisMinVal: 0, valAxisMaxVal: 60, showLegend: true, legendPos: "b",
     showTitle: true, title: "실행 5%만 검토할 때 미래 변조 재현율 (%)" });
   T(s, "변조에 가까워질수록(k=10) 순서·구조 모델(GRU·GCN)이 집계 모델(LR)을 앞선다", { x: 0.6, y: 6.05, w: 12, h: 0.45, fontSize: 15, bold: true });
@@ -280,7 +282,7 @@ pres.addSection({ title: "Ⅳ 결과" });
     { name: "LR", labels: lb, values: B.map((b) => +(mon("y_tamper", 10, "p_lr", b).recall * 100).toFixed(1)) },
     { name: "사람이 만든 규칙", labels: lb, values: B.map((b) => +(mon("y_tamper", 10, "p_rule", b).recall * 100).toFixed(1)) },
     { name: "무작위 검토", labels: lb, values: B.map((b) => b * 100) }],
-  { ...chartBase, x: 0.5, y: 1.5, w: 6.6, h: 4.9, chartColors: [TEAL, "5EEAD4", AMBER, MUTE], lineSize: 3, lineDataSymbolSize: 8, showLegend: true, legendPos: "b",
+  { ...chartBase, x: 0.5, y: 1.5, w: 6.6, h: 4.9, chartColors: [ACC, NAVY, G2, G3], lineSize: 3, lineDataSymbolSize: 8, showLegend: true, legendPos: "b",
     showTitle: true, title: "검토 예산별 미래 변조 재현율 (k=10, %)", valAxisMaxVal: 70, valAxisMinVal: 0, catAxisTitle: "검토 예산 (위험 점수 상위 %)", showCatAxisTitle: true, catAxisTitleFontSize: 11, catAxisTitleColor: SUB });
   const e10 = mon("y_tamper", 10, "p_ens"), e5 = mon("y_tamper", 5, "p_ens"), r10 = mon("y_tamper", 10, "p_rule"), r5 = mon("y_tamper", 5, "p_rule");
   stat(s, 7.5, 1.55, 2.6, `${pct(e5.recall, 0)}~${pct(e10.recall, 0)}`, "모델 (앙상블, k=5~10)", TEAL, 32);
@@ -297,7 +299,7 @@ pres.addSection({ title: "Ⅳ 결과" });
   const s = content("테스트를 건드리지 않은 변조도 잡는다", "Ⅳ 결과", "Ⅳ 결과");
   const sc = [["p_rule", "사람이 만든 규칙"], ["p_lr", "LR"], ["p_ens", "앙상블"]];
   s.addChart(pres.charts.BAR, sc.map(([k_, nm]) => ({ name: nm, labels: ["k=5", "k=10"], values: [5, 10].map((k) => +(con(k, k_, false).recall * 100).toFixed(1)) })),
-    { ...chartBase, x: 0.5, y: 1.5, w: 6.4, h: 4.6, barDir: "col", barGrouping: "clustered", chartColors: [AMBER, "5EEAD4", TEAL], showValue: true,
+    { ...chartBase, x: 0.5, y: 1.5, w: 6.4, h: 4.6, barDir: "col", barGrouping: "clustered", chartColors: [G3, G1, ACC], showValue: true,
       dataLabelPosition: "outEnd", dataLabelFormatCode: '0.0"%"', dataLabelColor: INK, valAxisMaxVal: 50, valAxisMinVal: 0, showLegend: true, legendPos: "b",
       showTitle: true, title: "테스트 접촉이 없던 변조의 재현율 (검토 5%, %)" });
   stat(s, 7.3, 1.55, 5.4, `${pct(con(10, "p_ens", false).share, 0)}~${pct(con(5, "p_ens", false).share, 0)}`, "변조의 대부분은 예측 시점까지 테스트 파일을 열거나 언급한 적이 없다", RED, 40);
@@ -318,7 +320,7 @@ pres.addSection({ title: "Ⅳ 결과" });
     ["행동 로그로 미리 경고할 수 있다", "LR·GRU·GCN 앙상블로 실행 5%만 검토해도 미래 변조의 33~49%를 약 3단계 전에 잡는다. 규칙보다 2~4배."]];
   cs.forEach(([h, b], i) => {
     const y = 1.5 + i * 1.2;
-    s.addShape(pres.shapes.OVAL, { x: 0.6, y: y + 0.12, w: 0.6, h: 0.6, fill: { color: TEAL }, line: { color: TEAL } });
+    s.addShape(pres.shapes.OVAL, { x: 0.6, y: y + 0.12, w: 0.6, h: 0.6, fill: { color: NAVY }, line: { color: NAVY } });
     T(s, String(i + 1), { x: 0.6, y: y + 0.12, w: 0.6, h: 0.6, fontSize: 18, bold: true, color: "FFFFFF", align: "center", valign: "middle" });
     T(s, h, { x: 1.4, y, w: 11.3, h: 0.42, fontSize: 18, bold: true });
     T(s, b, { x: 1.4, y: y + 0.45, w: 11.3, h: 0.6, fontSize: 14, color: SUB });
@@ -331,7 +333,7 @@ function e_prec() { return mon("y_tamper", 10, "p_ens").precision ?? mon("y_tamp
 { // Q&A
   const s = pres.addSlide({ masterName: "DARK", sectionTitle: "Ⅳ 결과" });
   T(s, "감사합니다", { x: 0.8, y: 2.3, w: 11.7, h: 1.1, fontSize: 48, bold: true, color: "FFFFFF", align: "center" });
-  T(s, "Q & A", { x: 0.8, y: 3.5, w: 11.7, h: 0.7, fontSize: 28, color: "99F6E4", align: "center" });
+  T(s, "Q & A", { x: 0.8, y: 3.5, w: 11.7, h: 0.7, fontSize: 28, color: G2, align: "center" });
   T(s, "데이터 통계·라벨 규칙·모델 설정·전체 결과·코드 구조·참고 문헌은 부록(A0~A14)에 있습니다", { x: 0.8, y: 5.2, w: 11.7, h: 0.5, fontSize: 14, color: "D1D5DB", align: "center" });
 }
 
@@ -340,7 +342,7 @@ pres.addSection({ title: "부록" });
 {
   const s = pres.addSlide({ masterName: "DARK", sectionTitle: "부록" });
   T(s, "Appendix", { x: 0.8, y: 2.4, w: 11.7, h: 1.0, fontSize: 44, bold: true, color: "FFFFFF" });
-  T(s, "상세 자료: 발표에서는 생략하고 제출용으로 첨부", { x: 0.8, y: 3.5, w: 11.7, h: 0.5, fontSize: 20, color: "99F6E4" });
+  T(s, "상세 자료: 발표에서는 생략하고 제출용으로 첨부", { x: 0.8, y: 3.5, w: 11.7, h: 0.5, fontSize: 20, color: G2 });
 }
 const TOC = [["A1", "데이터 통계", "5, 9"], ["A2", "라벨 규칙", "6"], ["A3", "라벨 감사와 교차 확인", "2, 6"], ["A4", "실행 실패 6유형", "7"],
   ["A5", "위협 패턴 상세", "8"], ["A6", "특징 목록", "10"], ["A7", "모델 설정", "10"], ["A8", "예측 성능 전체표", "11"], ["A9", "감시 운영 전체표", "12"],

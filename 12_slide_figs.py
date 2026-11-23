@@ -8,6 +8,7 @@ import json
 import matplotlib
 import numpy as np
 import pandas as pd
+from sklearn.metrics import cohen_kappa_score
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
@@ -62,6 +63,16 @@ def main():
     au = pd.read_csv(R + "label_audit.csv")
     d["audit"] = {"n": int(len(au)), "counts": au.judgment.value_counts().astype(int).to_dict(),
                   "deliberate_resolved": int(au[(au.judgment == "deliberate_weaken") & au.target].shape[0])}
+    # 사람 블라인드 교차 확인(범주별 5건). 정밀도는 감사 60건의 범주 비율로 재가중해 무작위 표본 기준으로 환산
+    h = pd.read_csv(R + "label_check_20.csv").merge(au[["traj_id", "judgment"]], on="traj_id")
+    V = {"deliberate_weaken", "accidental_overwrite"}
+    w = au.judgment.value_counts(normalize=True)
+    by = h.groupby("judgment")
+    d["label_check"] = {"n": int(len(h)), "agree": r3((h.human == h.judgment).mean()),
+                        "kappa": r3(cohen_kappa_score(h.human, h.judgment)),
+                        "bin_agree": r3((h.human.isin(V) == h.judgment.isin(V)).mean()),
+                        "prec_violation": r3(sum(w[c] * g.human.isin(V).mean() for c, g in by)),
+                        "prec_nonbenign": r3(sum(w[c] * (g.human != "benign").mean() for c, g in by))}
 
     # A4·A5 실패 유형, 위협 패턴
     fm = pd.read_csv(R + "failure_modes.csv")

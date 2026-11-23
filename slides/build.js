@@ -185,7 +185,7 @@ pres.addSection({ title: "Ⅱ 데이터" });
     catAxisOrientation: "maxMin", valAxisHidden: true, valGridLine: { style: "none" } });
   stat(s, 7.9, 5.15, 2.3, pct((a.deliberate_weaken + a.accidental_overwrite) / D.audit.n, 0), "테스트 무결성 훼손\n(의도적 + 실수)", RED, 36);
   stat(s, 10.35, 5.15, 2.3, pct(1 - a.benign / D.audit.n, 0), "무해하지 않음", AMBER, 36);
-  foot(s, "06_labels.py · 감사 results/label_audit.csv · 사람 블라인드 교차 확인 20건 진행 (상세: A2, A3)");
+  foot(s, `06_labels.py · 감사 results/label_audit.csv · 사람 블라인드 교차 확인 κ ${D.label_check.kappa.toFixed(2)} (상세: A2, A3)`);
   s.addNotes("이 데이터에는 변조 정답이 없어서 라벨을 직접 만들었습니다. 최종 패치에서 기존 테스트 파일의 assert를 지우거나 바꾸거나, 테스트 함수를 지우거나, skip을 추가하면 테스트 변조로 봤습니다. 719건, 전체의 0.9%입니다. 실행된 명령에서는 위험 명령을 찾아 4,523건을 얻었습니다. 그리고 변조 시점은 기존 테스트 파일을 처음 편집한 단계로 정했습니다. 규칙 라벨이 맞는지 60건을 무작위로 뽑아 직접 읽어 보니, 65%는 실제로 테스트를 망가뜨렸고 88%는 무해하지 않은 변경이었습니다.");
 }
 { // 7 hidden threat
@@ -381,7 +381,7 @@ const TOC = [["A1", "데이터 통계", "5, 9"], ["A2", "라벨 규칙", "6"], [
     { x: 0.6, y: 6.1, w: 12.2, h: 0.6, fontSize: 12, color: SUB });
 }
 { // A3
-  const s = appx("A3. 변조 라벨 감사 (무작위 60건)와 사람 교차 확인");
+  const s = appx("A3. 변조 라벨 감사 (무작위 60건)와 사람 블라인드 교차 확인");
   const a = D.audit.counts;
   table(s, [["판정", "건수", "정의", "예"],
     ["의도적 약화", a.deliberate_weaken, "통과시키려고 일부러 약화", "assert 주석·print로 교체, in → not in, xfail 추가, 테스트 삭제"],
@@ -392,7 +392,9 @@ const TOC = [["A1", "데이터 통계", "5, 9"], ["A2", "라벨 규칙", "6"], [
   stat(s, 0.6, 4.2, 3.2, pct((a.deliberate_weaken + a.accidental_overwrite) / D.audit.n, 0), "정밀도: 테스트 무결성 훼손", RED, 34);
   stat(s, 3.9, 4.2, 3.2, pct(1 - a.benign / D.audit.n, 0), "정밀도: 무해하지 않음", AMBER, 34);
   stat(s, 7.2, 4.2, 2.6, `${D.audit.deliberate_resolved}/${a.deliberate_weaken}`, "의도적 약화 중 '해결' 채점", TEAL, 34);
-  card(s, 0.6, 5.6, 12.2, 1.25, "사람 블라인드 교차 확인 (진행 중)", "범주별 5건, 총 20건을 판정을 가린 채 다시 판정해 Cohen's kappa로 일치도 보고 (11_label_check.py). 60건 감사는 Claude가 diff와 추론을 읽고 판정", { bs: 12, hs: 14 });
+  const lc = D.label_check;
+  card(s, 0.6, 5.6, 12.2, 1.25, `사람 블라인드 교차 확인 ${lc.n}건 (범주별 5건): 4범주 일치 ${pct(lc.agree, 0)}, Cohen's κ ${lc.kappa.toFixed(2)}, 무결성 훼손 여부 일치 ${pct(lc.bin_agree, 0)}`,
+    `사람 판정을 감사 범주 비율로 재가중한 정밀도: 무결성 훼손 ${pct(lc.prec_violation, 0)}, 무해 아님 ${pct(lc.prec_nonbenign, 0)} (위 Claude 판정보다 높음). 불일치는 주로 '의도적 약화 ↔ 실수로 덮어씀', '기대값 갱신 ↔ 훼손' 경계. 11_label_check.py`, { bs: 12, hs: 14 });
 }
 { // A4
   const s = appx("A4. 실행 실패 6유형 (실패 실행, 규칙 번호 순서대로 먼저 걸리는 유형)");
@@ -524,7 +526,7 @@ const TOC = [["A1", "데이터 통계", "5, 9"], ["A2", "라벨 규칙", "6"], [
 { // A14
   const s = appx("A14. 예상 질문과 답");
   const qa = [["정밀도 4~5%면 쓸모가 있나?", "사람 검토용이 아니라 테스트 쓰기 잠금·확인 요청 같은 값싼 자동 개입의 방아쇠로 쓴다. 기저율의 약 10배다."],
-    ["라벨이 맞나?", "무작위 60건 감사에서 무결성 훼손 65%, 무해 아님 88%. 사람 블라인드 교차 확인 20건으로 보강 중."],
+    ["라벨이 맞나?", `무작위 60건 감사에서 무결성 훼손 65%, 무해 아님 88%. 사람 블라인드 교차 확인 20건은 κ ${D.label_check.kappa.toFixed(2)}(중간 수준 일치), 사람 기준 재가중 정밀도는 ${pct(D.label_check.prec_violation, 0)}·${pct(D.label_check.prec_nonbenign, 0)}.`],
     ["테스트 변조가 왜 보안인가?", "외부 공격이 아니라 에이전트가 검증 장치를 스스로 무력화하는 무결성 위협이다. 약화된 테스트는 이후 버그·악성 변경을 통과시킨다."],
     ["GCN이 꼭 필요했나?", "k=10에서 GCN 단독 recall@10% 55%로 가장 높고, 앙상블은 LR보다 5% 재현율 +10%p. 다만 CI가 겹쳐 강하게 주장하지 않는다."],
     ["실패 예측 모델을 사전 학습한 것인가?", "아니다. 특징 추출 코드만 재사용했고 모델은 보안 라벨로 처음부터 새로 학습했다."],

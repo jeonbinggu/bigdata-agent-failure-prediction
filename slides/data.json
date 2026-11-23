@@ -177,6 +177,14 @@
   },
   "deliberate_resolved": 8
  },
+ "label_check": {
+  "n": 20,
+  "agree": 0.65,
+  "kappa": 0.5333,
+  "bin_agree": 0.75,
+  "prec_violation": 0.7433,
+  "prec_nonbenign": 0.9067
+ },
  "failure_modes": [
   {
    "mode": "컨텍스트 소진",

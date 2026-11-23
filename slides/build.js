@@ -229,15 +229,15 @@ pres.addSection({ title: "Ⅲ 학습" });
   const rules = [["이미 일어난 사건은 제외", "변조 시점 t ≤ k인 실행은 학습·평가에서 뺀다. 코드에서 assert로 검사."],
     ["과제 단위 분할", "같은 GitHub 이슈의 다른 실행이 학습과 평가에 섞이지 않게 홀드아웃 20% + GroupKFold(5)."],
     ["결과 정보는 입력 금지", "최종 패치, 채점 결과, 전체 길이는 쓰지 않는다. 패치는 라벨을 만드는 데만."],
-    ["지표: recall@검토예산", "위험 점수 상위 x%만 사람이 볼 때 미래 변조의 몇 %를 잡나. 무작위 검토 = x%."]];
+    ["평가: 상위 5%만 확인하면 몇 %를 잡나", "변조는 100건 중 1건도 안 돼 '전부 정상'만 답해도 정확도 99%. 그래서 위험 상위 x%를 확인할 때 실제 변조를 몇 % 잡는지로 평가 (무작위 = x%)."]];
   rules.forEach(([h, b], i) => card(s, 0.6 + (i % 2) * 6.15, 3.0 + Math.floor(i / 2) * 1.75, 5.95, 1.55, h, b, { bs: 13 }));
   foot(s, `학습 행: k=5 ${n(D.rows_by_k[0].rows)}, k=10 ${n(D.rows_by_k[1].rows)} · 양성 비율 0.4~0.9% (상세: A1, A11)`);
 }
 { // 10 models
   const s = content("세 관점으로 행동 로그를 읽는다", "Ⅲ 학습", "Ⅲ 학습");
-  const cards = [["집계  ·  로지스틱 회귀", "행동 로그 특징 44개 + 보안 특징 19개\n(테스트 열람, 편집 후 실행 여부, 추론 키워드 등)", CARD, INK],
+  const cards = [["숫자 요약  ·  로지스틱 회귀", "행동 로그 특징 44개 + 보안 특징 19개\n(테스트 열람, 편집 후 실행 여부, 추론 키워드 등)", CARD, INK],
     ["순서  ·  GRU", "행동 토큰 14종 + 단계별 신호 11개의 시퀀스\n'오류 → 탐색 → 테스트' 같은 순서를 본다", CARD, INK],
-    ["구조  ·  GCN", "앞 k단계를 행동 전이 그래프로 변환\n노드 14 = 행동 종류, 간선 = 전이 횟수, 2층 GCN", TEAL_L, TEAL]];
+    ["모양  ·  GCN (그래프)", "행동 = 점, 다음 행동으로 넘어감 = 화살표인 그래프로 바꿔\n그 모양을 그래프 신경망(GCN)이 배운다", TEAL_L, TEAL]];
   cards.forEach(([h, b, f, c], i) => card(s, 0.6, 1.5 + i * 1.6, 5.3, 1.45, h, b, { fill: f, hc: c, bs: 12.5, hs: 15 }));
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y: 6.32, w: 5.3, h: 0.5, fill: { color: NAVY }, line: { color: NAVY }, rectRadius: 0.08 });
   T(s, "앙상블 = 세 모델의 보정 확률 평균", { x: 0.6, y: 6.32, w: 5.3, h: 0.5, fontSize: 14, bold: true, color: "FFFFFF", align: "center", valign: "middle" });
@@ -255,11 +255,11 @@ pres.addSection({ title: "Ⅳ 결과" });
   const ser = (key, scale) => [5, 10].map((k) => ({ name: `k=${k}`, labels: ms, values: ms.map((m) => +(met("y_tamper", k, m)[key] * scale).toFixed(key === "roc" ? 3 : 1)) }));
   s.addChart(pres.charts.BAR, ser("roc", 1), { ...chartBase, x: 0.5, y: 1.5, w: 6.1, h: 4.4, barDir: "col", barGrouping: "clustered", chartColors: [G3, NAVY],
     showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0.00", dataLabelColor: INK, valAxisMinVal: 0.5, valAxisMaxVal: 0.9, showLegend: true, legendPos: "b",
-    showTitle: true, title: "ROC-AUC (홀드아웃)" });
+    showTitle: true, title: "ROC-AUC (0.5 = 동전 던지기, 1 = 완벽)" });
   s.addChart(pres.charts.BAR, ser("r5", 100), { ...chartBase, x: 6.7, y: 1.5, w: 6.1, h: 4.4, barDir: "col", barGrouping: "clustered", chartColors: [G3, NAVY],
     showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: '0"%"', dataLabelColor: INK, valAxisMinVal: 0, valAxisMaxVal: 60, showLegend: true, legendPos: "b",
     showTitle: true, title: "실행 5%만 검토할 때 미래 변조 재현율 (%)" });
-  T(s, "변조에 가까워질수록(k=10) 순서·구조 모델(GRU·GCN)이 집계 모델(LR)을 앞선다", { x: 0.6, y: 6.05, w: 12, h: 0.45, fontSize: 15, bold: true });
+  T(s, "변조에 가까워질수록(k=10) 순서·모양을 보는 GRU·GCN이 숫자 요약 모델(LR)을 앞선다", { x: 0.6, y: 6.05, w: 12, h: 0.45, fontSize: 15, bold: true });
   const sd = Math.max(...D.metrics.y_tamper.filter((r) => r.roc_sd != null).map((r) => r.roc_sd));
   foot(s, `홀드아웃 양성 k=5 ${met("y_tamper", 5, "LR").pos}건, k=10 ${met("y_tamper", 10, "LR").pos}건 · GRU·GCN 시드 5개 평균, 시드 간 ROC 표준편차 ≤ ${sd.toFixed(3)} (상세: A8)`);
 }
@@ -279,7 +279,7 @@ pres.addSection({ title: "Ⅳ 결과" });
   table(s, [["k", "앙상블 [95% CI]", "규칙 [95% CI]", "리드"],
     ...[[5, e5, r5], [10, e10, r10]].map(([k, e, r]) => [k, hl(`${pct(e.recall)} [${pct(e.lo, 0)}, ${pct(e.hi, 0)}]`), `${pct(r.recall)} [${pct(r.lo, 0)}, ${pct(r.hi, 0)}]`, `${e.lead}단계`])],
   { x: 7.5, y: 3.35, w: 5.25, colW: [0.5, 2.0, 1.9, 0.85], fs: 12, rowH: 0.4, align: "center" });
-  T(s, `무작위 검토는 5%. 경보는 변조 약 3단계 전에 울려, 멈추거나 "테스트는 수정하지 말 것"을 안내할 시간이 있다.\n위험 명령도 앙상블 ${pct(mon("y_risky", 5, "p_ens").recall, 0)} 대 규칙 ${pct(mon("y_risky", 5, "p_rule").recall, 0)} (k=5).`,
+  T(s, `사람이 만든 규칙 = 8번 장의 신호를 조건으로 옮긴 것 ("테스트를 고치자"는 말, 테스트 파일 열람, 실패 직후 테스트 이동이 있으면 위험). 무작위 검토는 5%.\n경보는 변조 약 3단계 전에 울려 멈추거나 안내할 시간이 있다. 위험 명령도 앙상블 ${pct(mon("y_risky", 5, "p_ens").recall, 0)} 대 규칙 ${pct(mon("y_risky", 5, "p_rule").recall, 0)} (k=5).`,
     { x: 7.5, y: 4.85, w: 5.25, h: 1.5, fontSize: 13, color: SUB });
   foot(s, "검토 예산 5%, 과제 단위 부트스트랩 1,000회 95% CI · 10_monitor.py (상세: A9)");
 }
@@ -312,8 +312,8 @@ pres.addSection({ title: "Ⅳ 결과" });
     T(s, h, { x: 1.4, y, w: 11.3, h: 0.42, fontSize: 18, bold: true });
     T(s, b, { x: 1.4, y: y + 0.45, w: 11.3, h: 0.6, fontSize: 14, color: SUB });
   });
-  card(s, 0.6, 5.2, 6.0, 1.6, "한계", `정밀도 ${pct(e_prec(), 0)} 내외(경보 20~25건 중 1건) · 라벨 정밀도 65~88% · SWE-agent·Llama 한 계열 · 개입 효과는 미검증`, { bs: 13 });
-  card(s, 6.75, 5.2, 6.0, 1.6, "실무 함의", "에이전트 평가에 테스트 무결성 지표를 함께 보고하고, 감시 모델은 테스트 쓰기 잠금 같은 값싼 자동 개입의 방아쇠로 쓴다.", { fill: TEAL_L, hc: TEAL, bs: 13 });
+  card(s, 0.6, 5.2, 4.3, 1.6, "한계", `정밀도 ${pct(e_prec(), 0)} 내외(경보 20~25건 중 1건) · 규칙 기반 라벨 · SWE-agent·Llama 한 계열 · 개입 효과 미검증`, { bs: 12.5 });
+  card(s, 5.05, 5.2, 7.7, 1.6, "기대 효과: 이렇게 쓴다", "에이전트 옆에서 실시간으로 위험 점수를 매기다가, 점수가 높아지면 테스트 파일 쓰기 잠금 · '테스트 수정 금지' 안내 · 사람 확인 요청. 실행 5%만 봐도 변조의 절반 가까이를 미리 막는다. 평가에는 성공률 옆에 테스트 무결성을 함께 보고한다.", { hc: TEAL, bs: 12.5 });
 }
 function e_prec() { return mon("y_tamper", 10, "p_ens").precision ?? mon("y_tamper", 10, "p_ens").prec; }
 { // Q&A

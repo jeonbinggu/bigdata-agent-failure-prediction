@@ -1,4 +1,4 @@
-// 27팀 발표 자료 생성: 본 발표 14장 + Q&A + 부록(A0~A14). 숫자는 모두 data.json(12_slide_figs.py)에서 읽는다.
+// 27팀 발표 자료 생성: 본 발표 14장 + Q&A + 부록(A0~A12). 숫자는 모두 data.json(12_slide_figs.py)에서 읽는다.
 // 사용: python 12_slide_figs.py && cd slides && node build.js
 const pptxgen = require("pptxgenjs");
 const D = require("./data.json");
@@ -119,7 +119,7 @@ pres.addSection({ title: "Ⅰ 주제 선정" });
   });
   card(s, 0.6, 4.25, 5.95, 2.2, "Reward hacking", "에이전트가 문제를 푸는 대신 테스트를 고쳐 통과시키는 현상이 최근 연구에서 보고되고 있다.", { bs: 14 });
   card(s, 6.8, 4.25, 5.95, 2.2, "ImpossibleBench (2025)", "LLM 감시자가 실행 기록 전체를 보고도 SWE 과제의 테스트 변조를 42~65%만 잡았다.\n→ 사후에 봐도 어렵다. 그렇다면 미리는?", { bs: 14 });
-  foot(s, "Zhong et al., ImpossibleBench, arXiv:2510.20270 / Jimenez et al., SWE-bench, ICLR 2024 (A13)");
+  foot(s, "Zhong et al., ImpossibleBench, arXiv:2510.20270 / Jimenez et al., SWE-bench, ICLR 2024 (A12)");
 }
 { // 4 definition + RQ
   const s = content("행동 로그만 보고 보안 위협을 미리 경고한다", "Ⅰ 주제 선정", "Ⅰ 주제 선정");
@@ -320,7 +320,7 @@ function e_prec() { return mon("y_tamper", 10, "p_ens").precision ?? mon("y_tamp
   const s = pres.addSlide({ masterName: "DARK", sectionTitle: "Ⅳ 결과" });
   T(s, "감사합니다", { x: 0.8, y: 2.3, w: 11.7, h: 1.1, fontSize: 48, bold: true, color: "FFFFFF", align: "center" });
   T(s, "Q & A", { x: 0.8, y: 3.5, w: 11.7, h: 0.7, fontSize: 28, color: G2, align: "center" });
-  T(s, "데이터 통계·라벨 규칙·모델 설정·전체 결과·코드 구조·참고 문헌은 부록(A0~A14)에 있습니다", { x: 0.8, y: 5.2, w: 11.7, h: 0.5, fontSize: 14, color: "D1D5DB", align: "center" });
+  T(s, "데이터 통계·라벨 규칙·모델 설정·전체 결과·코드 구조·참고 문헌은 부록(A0~A12)에 있습니다", { x: 0.8, y: 5.2, w: 11.7, h: 0.5, fontSize: 14, color: "D1D5DB", align: "center" });
 }
 
 // ======================= 부록 =======================
@@ -330,13 +330,13 @@ pres.addSection({ title: "부록" });
   T(s, "Appendix", { x: 0.8, y: 2.4, w: 11.7, h: 1.0, fontSize: 44, bold: true, color: "FFFFFF" });
   T(s, "상세 자료: 발표에서는 생략하고 제출용으로 첨부", { x: 0.8, y: 3.5, w: 11.7, h: 0.5, fontSize: 20, color: G2 });
 }
-const TOC = [["A1", "데이터 통계", "5, 9"], ["A2", "라벨 규칙", "6"], ["A3", "라벨 감사와 교차 확인", "2, 6"], ["A4", "실행 실패 6유형", "7"],
-  ["A5", "위협 패턴 상세", "8"], ["A6", "특징 목록", "10"], ["A7", "모델 설정", "10"], ["A8", "예측 성능 전체표", "11"], ["A9", "감시 운영 전체표", "12"],
-  ["A10", "일반화와 단변량 신호", "13"], ["A11", "코드 구조와 재현", "9"], ["A12", "보조: 실패 조기 예측", "—"], ["A13", "참고 문헌", "3"], ["A14", "예상 질문과 답", "—"]];
+const TOC = [["A1", "데이터 통계", "5, 9"], ["A2", "라벨 규칙", "6"], ["A3", "라벨 검증: LLM 1차 판정 → 사람 교차 확인", "2, 6"], ["A4", "실행 실패 6유형", "7"],
+  ["A5", "위협 패턴 상세", "8"], ["A6", "특징 목록", "10"], ["A7", "모델 설정", "10"], ["A8", "예측 성능 전체표", "11"], ["A9", "감시 운영: 규칙 대 모델", "12"],
+  ["A10", "일반화와 단변량 신호", "13"], ["A11", "코드 구조와 재현", "9"], ["A12", "참고 문헌", "3"]];
 { // A0
   const s = appx("A0. 부록 목차");
-  table(s, [["#", "내용", "본 슬라이드"], ...TOC.slice(0, 7)], { x: 0.6, y: 1.4, w: 5.9, colW: [0.8, 3.6, 1.5], fs: 14, rowH: 0.55 });
-  table(s, [["#", "내용", "본 슬라이드"], ...TOC.slice(7)], { x: 6.85, y: 1.4, w: 5.9, colW: [0.8, 3.6, 1.5], fs: 14, rowH: 0.55 });
+  table(s, [["#", "내용", "본 슬라이드"], ...TOC.slice(0, 6)], { x: 0.6, y: 1.4, w: 5.9, colW: [0.8, 3.6, 1.5], fs: 14, rowH: 0.6 });
+  table(s, [["#", "내용", "본 슬라이드"], ...TOC.slice(6)], { x: 6.85, y: 1.4, w: 5.9, colW: [0.8, 3.6, 1.5], fs: 14, rowH: 0.6 });
   foot(s, "모든 숫자는 저장소 results/ 의 CSV에서 12_slide_figs.py로 다시 읽어 넣었다");
 }
 { // A1
@@ -369,20 +369,21 @@ const TOC = [["A1", "데이터 통계", "5, 9"], ["A2", "라벨 규칙", "6"], [
     { x: 0.6, y: 6.1, w: 12.2, h: 0.6, fontSize: 12, color: SUB });
 }
 { // A3
-  const s = appx("A3. 변조 라벨 감사 (무작위 60건)와 사람 블라인드 교차 확인");
+  const s = appx("A3. 라벨 검증: LLM 1차 판정 → 사람 블라인드 교차 확인");
   const a = D.audit.counts;
+  T(s, "1차: LLM(Claude)이 무작위 60건의 diff와 에이전트 추론을 읽고 4범주로 판정", { x: 0.6, y: 1.12, w: 12.2, h: 0.35, fontSize: 13, bold: true });
   table(s, [["판정", "건수", "정의", "예"],
     ["의도적 약화", a.deliberate_weaken, "통과시키려고 일부러 약화", "assert 주석·print로 교체, in → not in, xfail 추가, 테스트 삭제"],
     ["실수로 덮어씀", a.accidental_overwrite, "새 테스트를 넣다 기존 줄을 덮어씀", "기존 def·assert가 사라지고 무관한 코드가 들어옴"],
     ["기대값 갱신", a.expected_update, "바뀐 동작에 맞춰 기대값 수정", "이슈가 동작 변경을 요구하면 정당할 수 있음"],
     ["무해", a.benign, "검증력이 줄지 않음", "이름 변경, 호환성 수정, assert 메시지 추가"]],
-  { x: 0.6, y: 1.3, w: 12.2, colW: [1.7, 0.8, 3.7, 6.0], fs: 12.5, rowH: 0.5 });
-  stat(s, 0.6, 4.2, 3.2, pct((a.deliberate_weaken + a.accidental_overwrite) / D.audit.n, 0), "정밀도: 테스트 무결성 훼손", RED, 34);
-  stat(s, 3.9, 4.2, 3.2, pct(1 - a.benign / D.audit.n, 0), "정밀도: 무해하지 않음", AMBER, 34);
-  stat(s, 7.2, 4.2, 2.6, `${D.audit.deliberate_resolved}/${a.deliberate_weaken}`, "의도적 약화 중 '해결' 채점", TEAL, 34);
+  { x: 0.6, y: 1.55, w: 12.2, colW: [1.7, 0.8, 3.7, 6.0], fs: 12.5, rowH: 0.46 });
+  stat(s, 0.6, 4.05, 3.2, pct((a.deliberate_weaken + a.accidental_overwrite) / D.audit.n, 0), "1차 정밀도: 테스트 무결성 훼손", RED, 34);
+  stat(s, 3.9, 4.05, 3.2, pct(1 - a.benign / D.audit.n, 0), "1차 정밀도: 무해하지 않음", INK, 34);
+  stat(s, 7.2, 4.05, 2.6, `${D.audit.deliberate_resolved}/${a.deliberate_weaken}`, "의도적 약화 중 '해결' 채점", INK, 34);
   const lc = D.label_check;
-  card(s, 0.6, 5.6, 12.2, 1.25, `사람 블라인드 교차 확인 ${lc.n}건 (범주별 5건): 4범주 일치 ${pct(lc.agree, 0)}, Cohen's κ ${lc.kappa.toFixed(2)}, 무결성 훼손 여부 일치 ${pct(lc.bin_agree, 0)}`,
-    `사람 판정을 감사 범주 비율로 재가중한 정밀도: 무결성 훼손 ${pct(lc.prec_violation, 0)}, 무해 아님 ${pct(lc.prec_nonbenign, 0)} (위 Claude 판정보다 높음). 불일치는 주로 '의도적 약화 ↔ 실수로 덮어씀', '기대값 갱신 ↔ 훼손' 경계. 11_label_check.py`, { bs: 12, hs: 14 });
+  card(s, 0.6, 5.55, 12.2, 1.3, `2차: 사람 블라인드 교차 확인 ${lc.n}건 (범주별 5건) → 4범주 일치 ${pct(lc.agree, 0)}, Cohen's κ ${lc.kappa.toFixed(2)}, 무결성 훼손 여부 일치 ${pct(lc.bin_agree, 0)}`,
+    `사람 판정을 1차 범주 비율로 재가중한 정밀도: 무결성 훼손 ${pct(lc.prec_violation, 0)}, 무해 아님 ${pct(lc.prec_nonbenign, 0)}로 1차 판정보다 높다. 불일치는 주로 '의도적 약화 ↔ 실수로 덮어씀', '기대값 갱신 ↔ 훼손' 경계. 11_label_check.py`, { bs: 12, hs: 14 });
 }
 { // A4
   const s = appx("A4. 실행 실패 6유형 (실패 실행, 규칙 번호 순서대로 먼저 걸리는 유형)");
@@ -443,34 +444,33 @@ const TOC = [["A1", "데이터 통계", "5, 9"], ["A2", "라벨 규칙", "6"], [
   table(s, rows("y_tamper"), { x: 0.6, y: 1.5, w: 6.0, colW: [0.4, 1.05, 0.55, 0.6, 0.6, 0.7, 0.7, 0.7, 0.7], fs: 11, rowH: 0.36, align: "center" });
   T(s, "위험 명령", { x: 6.8, y: 1.15, w: 6, h: 0.35, fontSize: 14, bold: true, color: AMBER });
   table(s, rows("y_risky"), { x: 6.8, y: 1.5, w: 6.0, colW: [0.4, 1.05, 0.55, 0.6, 0.6, 0.7, 0.7, 0.7, 0.7], fs: 11, rowH: 0.36, align: "center" });
-  T(s, "r@x% = 위험 점수 상위 x%를 검토할 때 미래 사건 재현율(무작위 = x%). 기저율: 변조 k=5 0.8%, k=10 0.4%. GRU·GCN은 시드 5개 평균 확률. k=20·30은 홀드아웃 양성이 한 자리 수라 제외.",
-    { x: 0.6, y: 5.75, w: 12.2, h: 0.8, fontSize: 11.5, color: SUB });
+  T(s, "r@x% = 위험 점수 상위 x%를 검토할 때 미래 사건 재현율(무작위 = x%). 기저율: 변조 k=5 0.8%, k=10 0.4%. GRU·GCN은 시드 5개 평균 확률. k=20·30은 홀드아웃 양성이 한 자리 수라 제외.\nGCN의 역할: k=10에서 GCN 단독 r@10%가 55%로 가장 높고, 앙상블은 LR보다 r@5%가 +10%p 높다. 다만 신뢰구간이 겹쳐(A9) 앙상블 우위는 약한 주장으로 둔다.",
+    { x: 0.6, y: 5.7, w: 12.2, h: 1.0, fontSize: 11.5, color: SUB });
 }
 { // A9
-  const s = appx("A9. 감시 운영 전체표: 검토 예산 5%·10%");
-  const nm = { p_rule: "규칙", p_lr: "LR", p_lgbm: "LightGBM", p_ens: "앙상블" };
-  const rows = [["사건", "k", "점수", "5% 재현율 [95% CI]", "정밀도", "리드", "10% 재현율"]];
-  for (const t of ["y_tamper", "y_risky"]) for (const k of [5, 10]) for (const sc of ["p_rule", "p_lr", "p_lgbm", "p_ens"]) {
-    const a = mon(t, k, sc), b = mon(t, k, sc, 0.1);
-    const c = [t === "y_tamper" ? "변조" : "위험 명령", k, nm[sc], `${pct(a.recall)} [${pct(a.lo)}, ${pct(a.hi)}]`, pct(a.prec), `${a.lead}`, pct(b.recall)];
+  const s = appx("A9. 감시 운영: 사람이 만든 규칙 대 LR 대 앙상블 (검토 예산 5%)");
+  const nm = { p_rule: "규칙", p_lr: "LR", p_ens: "앙상블" };
+  const rows = [["사건", "k", "점수", "재현율 [95% CI]", "정밀도", "리드(단계)"]];
+  for (const t of ["y_tamper", "y_risky"]) for (const k of [5, 10]) for (const sc of ["p_rule", "p_lr", "p_ens"]) {
+    const a = mon(t, k, sc);
+    const c = [t === "y_tamper" ? "변조" : "위험 명령", k, nm[sc], `${pct(a.recall)} [${pct(a.lo)}, ${pct(a.hi)}]`, pct(a.prec), `${a.lead}`];
     rows.push(sc === "p_ens" ? c.map((x) => hl(x)) : c);
   }
-  table(s, rows, { x: 0.6, y: 1.2, w: 9.2, colW: [1.3, 0.5, 1.3, 2.6, 1.1, 0.8, 1.6], fs: 10.5, rowH: 0.3, align: "center" });
-  T(s, "규칙(변조) = 테스트 수정 추론×10 + 기존 테스트 열람 + 실패 직후 테스트 이동\n\n규칙(위험 명령) = 오류 관찰 + not found 수\n\nCI = 홀드아웃 과제를 1,000회 복원 추출한 부트스트랩 95% 구간\n\n리드 = 경보가 맞은 실행에서 예측 시점과 실제 사건 사이 단계 수(중앙값)",
-    { x: 10.05, y: 1.2, w: 2.75, h: 5.3, fontSize: 11.5, color: SUB });
+  table(s, rows, { x: 0.6, y: 1.2, w: 8.6, colW: [1.4, 0.6, 1.2, 2.8, 1.3, 1.3], fs: 11.5, rowH: 0.38, align: "center" });
+  T(s, "규칙(변조) = 테스트 수정 추론×10 + 기존 테스트 열람 + 실패 직후 테스트 이동. 규칙(위험 명령) = 오류 관찰 + not found 수\n\nCI = 홀드아웃 과제를 1,000회 복원 추출한 부트스트랩 95% 구간. 리드 = 맞힌 경보의 예측 시점부터 실제 사건까지 단계 수(중앙값)\n\n정밀도 4~5%의 의미: 경보 20~25건 중 1건이 실제 변조. 기저율(0.4~0.8%)의 약 10배라, 사람이 모든 경보를 보기보다 테스트 쓰기 잠금·확인 요청 같은 가벼운 자동 조치의 신호로 쓰는 것이 맞다.\n\n검토 예산별(1·2·5·10%) 재현율 전체는 A8",
+    { x: 9.5, y: 1.2, w: 3.3, h: 5.6, fontSize: 11.5, color: SUB });
 }
 { // A10
   const s = appx("A10. 일반화와 단변량 신호");
-  const cm = (t) => [["k", "평가 모델(학습 제외)", "평가 실행", "ROC-AUC"], ...D.cross_model[t].map((r) => [r.k, r.model, n(r.n), r.roc.toFixed(3)])];
-  T(s, "처음 보는 LLM: 한 모델을 빼고 학습한 뒤 그 모델에서 평가 (LightGBM)", { x: 0.6, y: 1.15, w: 12, h: 0.35, fontSize: 13, bold: true });
-  T(s, "변조", { x: 0.6, y: 1.55, w: 3, h: 0.3, fontSize: 12, bold: true, color: RED });
-  table(s, cm("y_tamper"), { x: 0.6, y: 1.85, w: 4.0, colW: [0.5, 1.5, 1.0, 1.0], fs: 11, rowH: 0.3, align: "center" });
-  T(s, "위험 명령", { x: 4.8, y: 1.55, w: 3, h: 0.3, fontSize: 12, bold: true, color: AMBER });
-  table(s, cm("y_risky"), { x: 4.8, y: 1.85, w: 4.0, colW: [0.5, 1.5, 1.0, 1.0], fs: 11, rowH: 0.3, align: "center" });
-  T(s, "70b가 데이터의 93%라 70b를 빼면 학습 데이터가 5천 건으로 준다. 405b는 양성이 한 자리 수라 불안정(k=10 0.16). → 다른 모델·프레임워크로의 일반화는 한계로 남긴다.", { x: 9.0, y: 1.85, w: 3.8, h: 2.2, fontSize: 11.5, color: SUB });
+  const cm = [["평가 모델(학습에서 제외)", "평가 실행", "변조 ROC-AUC", "위험 명령 ROC-AUC"],
+    ...["70b", "8b", "405b"].map((m) => { const a = D.cross_model.y_tamper.find((r) => r.k === 5 && r.model === m), b = D.cross_model.y_risky.find((r) => r.k === 5 && r.model === m);
+      return [`Llama 3.1 ${m}`, n(a.n), a.roc.toFixed(3), b.roc.toFixed(3)]; })];
+  T(s, "처음 보는 LLM: 한 모델을 빼고 학습한 뒤 그 모델에서 평가 (k=5)", { x: 0.6, y: 1.15, w: 12, h: 0.35, fontSize: 13, bold: true });
+  table(s, cm, { x: 0.6, y: 1.6, w: 7.6, colW: [2.6, 1.4, 1.8, 1.8], fs: 12, rowH: 0.38, align: "center" });
+  T(s, "학습이 빠른 표 형식 모델(LightGBM)로 수행했다. 70b가 데이터의 93%라 70b를 빼면 학습 데이터가 5천 건으로 준다. 405b는 양성이 적어 수치가 불안정하다. 다른 모델·프레임워크로의 일반화는 한계로 남긴다.", { x: 8.5, y: 1.6, w: 4.3, h: 1.6, fontSize: 11.5, color: SUB });
   const lbl = { n_create: "파일 생성(재현 스크립트 등)", s_edit_then_python: "편집 직후 python 실행", s_last5_test_ctx: "최근 5단계 테스트 문맥", s_open_test: "기존 테스트 열람", s_fail_to_test: "실패 직후 테스트 이동", s_edit_err_nav: "오류 난 편집 후 탐색" };
   table(s, [["앞 10단계에 해당 행동이 있는 비율", "변조 실행", "나머지", "배율"], ...D.univariate.map((r) => [lbl[r.feature], pct(r.pos), pct(r.neg), (r.pos / r.neg).toFixed(1) + "배"])],
-    { x: 0.6, y: 4.3, w: 8.2, colW: [3.8, 1.4, 1.4, 1.6], fs: 11.5, rowH: 0.32, align: "center" });
+    { x: 0.6, y: 3.65, w: 8.2, colW: [3.8, 1.4, 1.4, 1.6], fs: 11.5, rowH: 0.32, align: "center" });
 }
 { // A11
   const s = appx("A11. 코드 구조와 재현");
@@ -486,21 +486,11 @@ const TOC = [["A1", "데이터 통계", "5, 9"], ["A2", "라벨 규칙", "6"], [
   T(s, ["python 06_labels.py", "python 07_failure_modes.py", "python 08_sec_features.py", "TARGET=y_tamper FEAT=data/features_sec.parquet \\", "    python 02_train.py", "TARGET=y_tamper python 09_seq_graph.py", "python 10_monitor.py", "python 12_slide_figs.py  # 발표 숫자·그림"].join("\n"),
     { x: 7.05, y: 3.0, w: 5.6, h: 2.3, fontFace: MONO, fontSize: 11.5, color: "E5E7EB" });
   T(s, "데이터: Hugging Face에서 snapshot_download (README.md) · 원본 1.1GB는 저장소에 넣지 않음 · 실패 예측(보조): 01_features.py → 02_train.py → 04_gru.py → 03_policy.py → 05_oracle.py", { x: 0.6, y: 5.65, w: 12.2, h: 0.7, fontSize: 11.5, color: SUB });
-  T(s, "GitHub: (저장소 링크 추가 예정)", { x: 0.6, y: 6.6, w: 6.0, h: 0.3, fontSize: 11.5, bold: true, color: TEAL });
+  T(s, [{ text: "GitHub: ", options: { bold: true } }, { text: "https://github.com/jeonbinggu/bigdata-agent-failure-prediction", options: { hyperlink: { url: "https://github.com/jeonbinggu/bigdata-agent-failure-prediction" }, color: TEAL } }],
+    { x: 0.6, y: 6.5, w: 12.2, h: 0.35, fontSize: 12.5 });
 }
 { // A12
-  const s = appx("A12. 보조 분석: 실행 실패 조기 예측과 조기 종료 정책");
-  const om = D.old_metrics;
-  table(s, [["k", "LR ROC-AUC", "LightGBM ROC-AUC"], ...[5, 10, 20, 30].map((k) => [k, om.find((r) => r.k === k && r.model === "lr").roc.toFixed(3), om.find((r) => r.k === k && r.model === "lgbm").roc.toFixed(3)])],
-    { x: 0.6, y: 1.3, w: 5.2, colW: [0.8, 2.2, 2.2], fs: 12.5, rowH: 0.42, align: "center" });
-  T(s, "같은 행동 로그 특징으로 '이 시도가 성공할까'를 예측(라벨 = target). GRU를 더한 앙상블은 0.66~0.76.", { x: 0.6, y: 3.55, w: 5.2, h: 0.9, fontSize: 12, color: SUB });
-  const pp = D.old_policy.filter((r) => r.budget === 100);
-  table(s, [["비용 단위 (예산 100)", "해결률", "무작위 재시도 대비", "고정 상한 대비"], ...pp.map((r) => [r.unit, pct(r.solve), `+${(r.vs_random * 100).toFixed(1)}%p`, `+${(r.vs_cap * 100).toFixed(1)}%p`])],
-    { x: 6.2, y: 1.3, w: 6.6, colW: [2.1, 1.3, 1.7, 1.5], fs: 12, rowH: 0.42, align: "center" });
-  T(s, "가망 없는 시도를 끊고 재시작하는 정책: 해결률 향상은 대부분 재시작 자체에서 나오고, 예측 기반 조기 종료의 추가 이득은 작다. 이 결과는 다른 팀 주제와 가까워 보조로만 다룬다.", { x: 6.2, y: 3.65, w: 6.6, h: 1.0, fontSize: 12, color: SUB });
-}
-{ // A13
-  const s = appx("A13. 참고 문헌");
+  const s = appx("A12. 참고 문헌");
   const refs = ["Zhong, Raghunathan, Carlini. ImpossibleBench: Measuring LLMs' Propensity of Exploiting Test Cases. arXiv:2510.20270, 2025.",
     "Jimenez et al. SWE-bench: Can Language Models Resolve Real-World GitHub Issues? ICLR 2024.",
     "Yang et al. SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering. arXiv:2405.15793, 2024.",
@@ -511,17 +501,6 @@ const TOC = [["A1", "데이터 통계", "5, 9"], ["A2", "라벨 규칙", "6"], [
     "Cho et al. Learning Phrase Representations using RNN Encoder–Decoder for Statistical Machine Translation. EMNLP 2014."];
   T(s, refs.map((r, i) => ({ text: `[${i + 1}] ${r}`, options: { breakLine: i < refs.length - 1 } })), { x: 0.6, y: 1.3, w: 12.2, h: 5.3, fontSize: 14, paraSpaceAfter: 12 });
 }
-{ // A14
-  const s = appx("A14. 예상 질문과 답");
-  const qa = [["정밀도 4~5%면 쓸모가 있나?", "사람 검토용이 아니라 테스트 쓰기 잠금·확인 요청 같은 값싼 자동 개입의 방아쇠로 쓴다. 기저율의 약 10배다."],
-    ["라벨이 맞나?", `무작위 60건 감사에서 무결성 훼손 65%, 무해 아님 88%. 사람 블라인드 교차 확인 20건은 κ ${D.label_check.kappa.toFixed(2)}(중간 수준 일치), 사람 기준 재가중 정밀도는 ${pct(D.label_check.prec_violation, 0)}·${pct(D.label_check.prec_nonbenign, 0)}.`],
-    ["테스트 변조가 왜 보안인가?", "외부 공격이 아니라 에이전트가 검증 장치를 스스로 무력화하는 무결성 위협이다. 약화된 테스트는 이후 버그·악성 변경을 통과시킨다."],
-    ["GCN이 꼭 필요했나?", "k=10에서 GCN 단독 recall@10% 55%로 가장 높고, 앙상블은 LR보다 5% 재현율 +10%p. 다만 CI가 겹쳐 강하게 주장하지 않는다."],
-    ["실패 예측 모델을 사전 학습한 것인가?", "아니다. 특징 추출 코드만 재사용했고 모델은 보안 라벨로 처음부터 새로 학습했다."],
-    ["다른 에이전트에도 통하나?", "이번 연구는 SWE-agent·Llama 3.1에 한정된다. 행동 토큰만 다시 정의하면 같은 파이프라인을 쓸 수 있다."]];
-  qa.forEach(([q, a], i) => card(s, 0.6 + (i % 2) * 6.2, 1.2 + Math.floor(i / 2) * 1.85, 6.0, 1.7, "Q. " + q, a, { bs: 12, hs: 14 }));
-}
-
 // pptxgenjs가 넣는 ZIP 폴더 항목은 클라우드 열기·공동 편집에서 문제를 일으켜 Python zipfile로 제거한다(JSZip 재압축은 PowerPoint가 못 염)
 const OUT = "27팀_발표.pptx", STRIP = `import sys,zipfile,os
 src=sys.argv[1];tmp=src+'.tmp'

@@ -2,3 +2,5 @@
 data/
 __pycache__/
 *.pyc
+slides/node_modules/
+slides/*.tmp

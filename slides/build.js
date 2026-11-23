@@ -178,7 +178,7 @@ pres.addSection({ title: "Ⅱ 데이터" });
   s.addChart(pres.charts.BAR, [{ name: "60건", labels: ["의도적 약화", "실수로 덮어씀", "기대값 갱신", "무해"],
     values: [a.deliberate_weaken, a.accidental_overwrite, a.expected_update, a.benign] }],
   { ...chartBase, x: 7.8, y: 1.5, w: 4.95, h: 3.6, barDir: "bar", chartColors: [DARK2, G1, G2, G3], varyColors: true,
-    showValue: true, dataLabelPosition: "outEnd", dataLabelColor: INK, showLegend: false, showTitle: true, title: "변조 라벨 60건을 직접 읽은 결과 (건)",
+    showValue: true, dataLabelPosition: "outEnd", dataLabelColor: INK, showLegend: false, showTitle: true, title: "변조 라벨 60건 판정 결과 (건, LLM 1차 판정)",
     catAxisOrientation: "maxMin", valAxisHidden: true, valGridLine: { style: "none" } });
   stat(s, 7.9, 5.15, 2.3, pct((a.deliberate_weaken + a.accidental_overwrite) / D.audit.n, 0), "테스트 무결성 훼손\n(의도적 + 실수)", RED, 36);
   stat(s, 10.35, 5.15, 2.3, pct(1 - a.benign / D.audit.n, 0), "무해하지 않음", AMBER, 36);
@@ -191,7 +191,7 @@ pres.addSection({ title: "Ⅱ 데이터" });
     { ...chartBase, x: 0.5, y: 1.5, w: 6.3, h: 4.7, barDir: "bar", chartColors: fm.map((r) => (r.mode.startsWith("검증") ? ACC : G3)), varyColors: true,
       showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: '0.0"%"', dataLabelColor: INK, showLegend: false, catAxisOrientation: "maxMin",
       valAxisHidden: true, valGridLine: { style: "none" }, showTitle: true, title: `실패 실행 ${n(D.n_fail)}건의 유형 (%)` });
-  T(s, "다섯 번 중 한 번은 한 번도 실행해 보지 않고 제출한다: '검증 회피'", { x: 0.6, y: 6.25, w: 6.2, h: 0.5, fontSize: 13, bold: true, color: RED });
+  T(s, "실패 다섯 번 중 한 번은 코드를 한 번도 실행해 보지 않고 제출한다", { x: 0.6, y: 6.25, w: 6.2, h: 0.5, fontSize: 13, bold: true, color: RED });
   stat(s, 7.3, 1.6, 2.6, pct(L.y_tamper.solve_pos), "변조한 실행의 해결률", RED, 50);
   stat(s, 10.1, 1.6, 2.6, pct(L.y_tamper.solve_neg), "나머지 실행의 해결률", MUTE, 50);
   T(s, "성공률만 보면 변조는 보이지 않는다. 채점은 테스트를 정답 버전으로 덮어쓰므로 점수를 올린 것은 아니지만, 저장소의 테스트는 망가진 채 남는다.", { x: 7.3, y: 3.25, w: 5.45, h: 1.1, fontSize: 13, color: SUB });
@@ -234,16 +234,16 @@ pres.addSection({ title: "Ⅲ 학습" });
   foot(s, `학습 행: k=5 ${n(D.rows_by_k[0].rows)}, k=10 ${n(D.rows_by_k[1].rows)} · 양성 비율 0.4~0.9% (상세: A1, A11)`);
 }
 { // 10 models
-  const s = content("세 관점으로 행동 로그를 읽는다", "Ⅲ 학습", "Ⅲ 학습");
-  const cards = [["숫자 요약  ·  로지스틱 회귀", "행동 로그 특징 44개 + 보안 특징 19개\n(테스트 열람, 편집 후 실행 여부, 추론 키워드 등)", CARD, INK],
-    ["순서  ·  GRU", "행동 토큰 14종 + 단계별 신호 11개의 시퀀스\n'오류 → 탐색 → 테스트' 같은 순서를 본다", CARD, INK],
-    ["모양  ·  GCN (그래프)", "행동 = 점, 다음 행동으로 넘어감 = 화살표인 그래프로 바꿔\n그 모양을 그래프 신경망(GCN)이 배운다", TEAL_L, TEAL]];
+  const s = content("전조의 형태에 맞춰 세 모델을 골랐다", "Ⅲ 학습", "Ⅲ 학습");
+  const cards = [["숫자 요약  ·  로지스틱 회귀", "근거: 횟수 신호 (테스트 열람 7.7배)\n특징 63개(행동 44 + 보안 19)를 가중합", CARD, INK],
+    ["순서  ·  GRU", "근거: 순서 신호 (오류 → 탐색 → 테스트)\n행동 토큰 14종 + 단계별 신호 11개의 시퀀스", CARD, INK],
+    ["모양  ·  GCN (그래프)", "근거: 전이 신호 (오류 난 edit → find_file 36배)\n행동 = 점, 전이 = 화살표. GCN을 PyTorch로 직접 구현", TEAL_L, TEAL]];
   cards.forEach(([h, b, f, c], i) => card(s, 0.6, 1.5 + i * 1.6, 5.3, 1.45, h, b, { fill: f, hc: c, bs: 12.5, hs: 15 }));
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y: 6.32, w: 5.3, h: 0.5, fill: { color: NAVY }, line: { color: NAVY }, rectRadius: 0.08 });
   T(s, "앙상블 = 세 모델의 보정 확률 평균", { x: 0.6, y: 6.32, w: 5.3, h: 0.5, fontSize: 14, bold: true, color: "FFFFFF", align: "center", valign: "middle" });
   s.addImage({ path: "figs/graph_example.png", x: 6.2, y: 1.5, w: 6.6, h: 3.08 });
   T(s, "GCN 입력 예시: 변조 실행은 오류 난 edit ↔ open을 맴돌고, 정상 실행은 edit → python으로 확인한다", { x: 6.2, y: 4.85, w: 6.6, h: 0.65, fontSize: 13, bold: true, color: INK });
-  T(s, "LightGBM은 양성이 드물어 과적합(dev ROC 0.61)해 제외 · 특징 추출기는 실패 예측 연구에서 재사용, 모델은 보안 라벨로 새로 학습 · GRU·GCN은 시드 5개 평균", { x: 6.2, y: 5.6, w: 6.6, h: 0.9, fontSize: 12, color: SUB });
+  T(s, "GCN은 수업의 자기 루프·대칭 정규화 2층 구조 · 양성이 수백 건뿐이라 모델을 작게 유지(GRU 64, GCN 32차원) · LightGBM은 dev 교차검증에서 과적합(ROC 0.61 대 LR 0.72)해 제외 · 모델은 보안 라벨로 새로 학습 · GRU·GCN은 시드 5개 평균", { x: 6.2, y: 5.6, w: 6.6, h: 0.9, fontSize: 12, color: SUB });
   foot(s, "08_sec_features.py, 02_train.py, 09_seq_graph.py (상세: A6, A7)");
 }
 
@@ -259,7 +259,7 @@ pres.addSection({ title: "Ⅳ 결과" });
   s.addChart(pres.charts.BAR, ser("r5", 100), { ...chartBase, x: 6.7, y: 1.5, w: 6.1, h: 4.4, barDir: "col", barGrouping: "clustered", chartColors: [G3, NAVY],
     showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: '0"%"', dataLabelColor: INK, valAxisMinVal: 0, valAxisMaxVal: 60, showLegend: true, legendPos: "b",
     showTitle: true, title: "실행 5%만 검토할 때 미래 변조 재현율 (%)" });
-  T(s, "변조에 가까워질수록(k=10) 순서·모양을 보는 GRU·GCN이 숫자 요약 모델(LR)을 앞선다", { x: 0.6, y: 6.05, w: 12, h: 0.45, fontSize: 15, bold: true });
+  T(s, "변조에 가까워질수록(k=10) 순서·모양을 보는 GRU·GCN이 LR보다 높은 경향 (양성 47건, 신뢰구간은 겹침)", { x: 0.6, y: 6.05, w: 12, h: 0.45, fontSize: 15, bold: true });
   const sd = Math.max(...D.metrics.y_tamper.filter((r) => r.roc_sd != null).map((r) => r.roc_sd));
   foot(s, `홀드아웃 양성 k=5 ${met("y_tamper", 5, "LR").pos}건, k=10 ${met("y_tamper", 10, "LR").pos}건 · GRU·GCN 시드 5개 평균, 시드 간 ROC 표준편차 ≤ ${sd.toFixed(3)} (상세: A8)`);
 }
@@ -313,7 +313,7 @@ pres.addSection({ title: "Ⅳ 결과" });
     T(s, b, { x: 1.4, y: y + 0.45, w: 11.3, h: 0.6, fontSize: 14, color: SUB });
   });
   card(s, 0.6, 5.2, 4.3, 1.6, "한계", `정밀도 ${pct(e_prec(), 0)} 내외(경보 20~25건 중 1건) · 규칙 기반 라벨 · SWE-agent·Llama 한 계열 · 개입 효과 미검증`, { bs: 12.5 });
-  card(s, 5.05, 5.2, 7.7, 1.6, "기대 효과: 이렇게 쓴다", "에이전트 옆에서 실시간으로 위험 점수를 매기다가, 점수가 높아지면 테스트 파일 쓰기 잠금 · '테스트 수정 금지' 안내 · 사람 확인 요청. 실행 5%만 봐도 변조의 절반 가까이를 미리 막는다. 평가에는 성공률 옆에 테스트 무결성을 함께 보고한다.", { hc: TEAL, bs: 12.5 });
+  card(s, 5.05, 5.2, 7.7, 1.6, "기대 효과: 이렇게 쓴다", "에이전트 옆에서 실시간으로 위험 점수를 매기다가, 점수가 높아지면 테스트 파일 쓰기 잠금 · '테스트 수정 금지' 안내 · 사람 확인 요청. 실행 5%만 봐도 변조의 33~49%를 미리 잡아낸다(실제로 막는 효과는 후속 검증). 평가에는 성공률 옆에 테스트 무결성을 함께 보고한다.", { hc: TEAL, bs: 12.5 });
 }
 function e_prec() { return mon("y_tamper", 10, "p_ens").precision ?? mon("y_tamper", 10, "p_ens").prec; }
 { // Q&A

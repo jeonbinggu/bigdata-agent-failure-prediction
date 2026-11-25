@@ -1,6 +1,6 @@
 """발표 자료용 숫자·그림 생성. results CSV와 data/*.parquet만 읽는다(재학습 없음).
 
-출력: slides/data.json (슬라이드에 들어가는 모든 숫자), slides/figs/graph_example.png (행동 전이 그래프 예시)
+출력: slides/data.json (슬라이드에 들어가는 모든 숫자), slides/figs/graph_example.png (행동 전이 그래프 예시), slides/figs/transition_diff.png (전이 차이 히트맵)
 사용: python 12_slide_figs.py  →  cd slides && node build.js
 """
 import json
@@ -13,7 +13,7 @@ from sklearn.metrics import cohen_kappa_score
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
-plt.rcParams["font.family"] = "Malgun Gothic"
+plt.rcParams["font.family"] = ["Malgun Gothic", "NanumGothic"]  # 앞에서부터 설치된 글꼴을 쓴다
 plt.rcParams["axes.unicode_minus"] = False
 TOK = ["open", "goto", "scroll", "search", "find_file", "edit", "create", "python", "submit", "ls", "cat_grep",
        "other", "edit_test", "risky"]  # 07_failure_modes.TOK 순서 (seqs_sec.npz 토큰 번호)
@@ -139,6 +139,7 @@ def main():
 
     json.dump(d, open("slides/data.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     graph_example(feat)
+    transition_heatmap()
     print("slides/data.json, slides/figs/graph_example.png")
 
 
@@ -189,6 +190,42 @@ def graph_example(feat, k=10):
              ha="center", fontsize=12, color="#4b5563")
     fig.tight_layout(rect=(0, 0.06, 1, 1))
     fig.savefig("slides/figs/graph_example.png", dpi=200)
+
+
+def transition_heatmap():
+    """변조 직전 전이확률 차이(변조 − 대조)를 발표 자료 색(회색 ↔ 빨강)으로 다시 그린다. results/transition_counts.npy만 읽는다."""
+    from matplotlib.colors import LinearSegmentedColormap
+    trans = np.load(R + "transition_counts.npy")  # [대조, 변조] × 현재 행동 × 다음 행동
+    P = trans / np.maximum(trans.sum(2, keepdims=True), 1)
+    diff = P[1] - P[0]
+    diff[trans[1].sum(1) < 30] = np.nan  # 07_failure_modes.py와 같은 기준: 출발 횟수가 적은 행은 가린다
+    keep = [i for i, t in enumerate(TOK) if t not in ("submit", "risky")]  # 가려지거나 노이즈가 큰 행·열은 뺀다
+    diff = diff[np.ix_(keep, keep)]
+    names = [TOK[i] for i in keep]
+    lim = np.nanmax(np.abs(diff))
+    cmap = LinearSegmentedColormap.from_list("deck", ["#3a3a3a", "#ffffff", "#c62828"])
+    fig, ax = plt.subplots(figsize=(6.4, 5.2))
+    im = ax.imshow(diff, cmap=cmap, vmin=-lim, vmax=lim)
+    ax.set_xticks(range(len(names)), names, rotation=45, ha="right", fontsize=13)
+    ax.set_yticks(range(len(names)), names, fontsize=13)
+    ax.set_xlabel("다음 행동", fontsize=14)
+    ax.set_ylabel("현재 행동", fontsize=14)
+    ax.set_xticks(np.arange(-0.5, len(names)), minor=True)
+    ax.set_yticks(np.arange(-0.5, len(names)), minor=True)
+    ax.grid(which="minor", color="#e6e6e6", lw=0.6)
+    ax.tick_params(which="both", length=0)
+    for sp in ax.spines.values():
+        sp.set_visible(False)
+    r, c = names.index("edit"), names.index("python")
+    ax.add_patch(plt.Rectangle((c - 0.5, r - 0.5), 1, 1, fill=False, lw=2.5, color="#111111"))
+    ax.annotate("고친 뒤 실행해 확인\n(edit → python)이\n줄어든다", (c + 0.5, r - 0.2), (c + 0.7, r - 2.6), fontsize=10.5,
+                fontweight="bold", color="#111111", ha="left", va="center", bbox=dict(fc="white", ec="none", pad=3),
+                arrowprops=dict(arrowstyle="-", color="#111111", lw=1.2))
+    cb = fig.colorbar(im, shrink=0.7, pad=0.03)
+    cb.outline.set_visible(False)
+    cb.set_ticks([-lim, 0, lim], labels=["정상에서\n더 많음", "같음", "변조 직전에\n더 많음"], fontsize=12)
+    fig.tight_layout()
+    fig.savefig("slides/figs/transition_diff.png", dpi=200)
 
 
 if __name__ == "__main__":

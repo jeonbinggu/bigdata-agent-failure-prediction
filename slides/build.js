@@ -635,7 +635,7 @@ const TOC = [["A1", "데이터 통계", "5, 9"], ["A2", "라벨 규칙", "6"], [
   [refs.slice(0, half), refs.slice(half)].forEach((col, c) =>
     T(s, col.map((r, i) => ({ text: `[${i + 1 + c * half}] ${r}`, options: { breakLine: i < col.length - 1 } })), { x: 0.6 + c * 6.2, y: 1.3, w: 5.9, h: 4.4, fontSize: 11.5, paraSpaceAfter: 9 }));
   rule(s, 0.6, 5.85, CW);
-  T(s, [{ text: "도구  ", options: { bold: true, color: INK } }, { text: "scikit-learn (Pedregosa et al., JMLR 2011) · PyTorch (Paszke et al., NeurIPS 2019) · LightGBM · pandas · pyarrow · matplotlib · huggingface_hub (데이터 내려받기) · pptxgenjs (발표 자료 생성)" }],
+  T(s, [{ text: "도구  ", options: { bold: true, color: INK } }, { text: "scikit-learn (Pedregosa et al., JMLR 2011) · PyTorch (Paszke et al., NeurIPS 2019) · LightGBM · pandas · pyarrow · matplotlib · huggingface_hub (데이터 내려받기)" }],
     { x: 0.6, y: 6.0, w: 12.13, h: 0.7, fontSize: 11.5, color: SUB });
 }
 // pptxgenjs가 넣는 ZIP 폴더 항목은 클라우드 열기·공동 편집에서 문제를 일으켜 Python zipfile로 제거한다(JSZip 재압축은 PowerPoint가 못 염)

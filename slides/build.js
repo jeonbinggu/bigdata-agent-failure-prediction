@@ -1,4 +1,4 @@
-// 27팀 발표 자료 생성: 본 발표 14장 + Q&A + 부록(A0~A12). 숫자는 모두 data.json(12_slide_figs.py)에서 읽는다.
+// 27팀 발표 자료 생성: 본 발표 14장 + Q&A + 부록(A0~A17). 숫자는 모두 data.json(12_slide_figs.py)에서 읽는다.
 // 사용: python 12_slide_figs.py && cd slides && node build.js
 const pptxgen = require("pptxgenjs");
 const D = require("./data.json");
@@ -137,7 +137,7 @@ pres.addSection({ title: "Ⅰ 주제 선정" });
     T(s, b, { x: 4.0, y: y + 0.2, w: 8.73, h: 0.8, fontSize: 15, color: SUB });
   });
   rule(s, MX, 6.6, CW);
-  foot(s, "Zhong et al., ImpossibleBench, arXiv:2510.20270 / Jimenez et al., SWE-bench, ICLR 2024 (A12)");
+  foot(s, "Zhong et al., ImpossibleBench, arXiv:2510.20270 / Jimenez et al., SWE-bench, ICLR 2024 / Skalse et al., Defining and Characterizing Reward Hacking, NeurIPS 2022 (A17)");
 }
 { // 4 definition + RQ
   const s = content("행동 로그만 보고 보안 위협을 미리 경고한다", "Ⅰ 주제 선정", "Ⅰ 주제 선정");
@@ -253,7 +253,7 @@ pres.addSection({ title: "Ⅲ 학습" });
     ["결과 정보는 입력 금지", "최종 패치, 채점 결과, 전체 길이는 쓰지 않는다. 패치는 라벨을 만드는 데만."],
     ["평가: 상위 5%만 확인하면 몇 %를 잡나", "변조는 100건 중 1건도 안 돼 '전부 정상'만 답해도 정확도 99%. 그래서 위험 상위 x%를 확인할 때 실제 변조를 몇 % 잡는지로 평가 (무작위 = x%)."]];
   rules.forEach(([h, b], i) => card(s, MX + (i % 2) * 6.27, 3.15 + Math.floor(i / 2) * 1.75, 5.85, 1.6, h, b, { bs: 14 }));
-  foot(s, `학습 행: k=5 ${n(D.rows_by_k[0].rows)}, k=10 ${n(D.rows_by_k[1].rows)} · 양성 비율 0.4~0.9% (상세: A1, A11)`);
+  foot(s, `사용한 행(학습 + 평가): k=5 ${n(D.rows_by_k[0].rows)}, k=10 ${n(D.rows_by_k[1].rows)} · 양성 비율 k=5 ${pct(D.rows_by_k[0].y_tamper_pos / D.rows_by_k[0].rows)}, k=10 ${pct(D.rows_by_k[1].y_tamper_pos / D.rows_by_k[1].rows)} (상세: A1, A12)`);
 }
 { // 10 models
   const s = content("전조의 형태에 맞춰 세 모델을 골랐다", "Ⅲ 학습", "Ⅲ 학습");
@@ -346,7 +346,7 @@ function e_prec() { return mon("y_tamper", 10, "p_ens").precision ?? mon("y_tamp
   T(s, "감사합니다", { x: MX, y: 2.2, w: 11.7, h: 1.3, fontSize: 60, bold: true, color: INK });
   T(s, "Q & A", { x: MX, y: 3.6, w: 11.7, h: 0.7, fontSize: 28, color: G1 });
   rule(s, MX, 6.35, CW, INK, 1);
-  T(s, "데이터 통계·라벨 규칙·모델 설정·전체 결과·코드 구조·참고 문헌은 부록(A0~A12)에 있습니다", { x: MX, y: 6.5, w: 11.7, h: 0.4, fontSize: 14, color: SUB });
+  T(s, "데이터 통계·전처리·라벨 규칙·모델 설정·전체 결과·보조 분석·참고 문헌은 부록(A0~A17)에 있습니다", { x: MX, y: 6.5, w: 11.7, h: 0.4, fontSize: 14, color: SUB });
 }
 
 // ======================= 부록 =======================
@@ -359,11 +359,12 @@ pres.addSection({ title: "부록" });
 }
 const TOC = [["A1", "데이터 통계", "5, 9"], ["A2", "라벨 규칙", "6"], ["A3", "라벨 검증: LLM 1차 판정 → 사람 교차 확인", "2, 6"], ["A4", "실행 실패 6유형", "7"],
   ["A5", "위협 패턴 상세", "8"], ["A6", "특징 목록", "10"], ["A7", "모델 설정", "10"], ["A8", "예측 성능 전체표", "11"], ["A9", "감시 운영: 규칙 대 모델", "12"],
-  ["A10", "일반화와 단변량 신호", "13"], ["A11", "코드 구조와 재현", "9"], ["A12", "참고 문헌", "3"]];
+  ["A10", "일반화, 단변량 신호, 테스트 접촉별 탐지", "13"], ["A11", "코드 구조와 재현", "9"], ["A12", "데이터 스키마와 단계 파싱", "5, 9"], ["A13", "행동 토큰 14종과 단계별 신호 11개", "8, 10"],
+  ["A14", "단변량 신호와 k별 성능", "10, 11"], ["A15", "보조: 실행 실패 조기 예측", "—"], ["A16", "보조: 조기 종료·재시작 정책", "—"], ["A17", "참고 문헌과 도구", "3"]];
 { // A0
   const s = appx("A0. 부록 목차");
-  table(s, [["#", "내용", "본 슬라이드"], ...TOC.slice(0, 6)], { x: 0.6, y: 1.4, w: 5.9, colW: [0.8, 3.6, 1.5], fs: 14, rowH: 0.6 });
-  table(s, [["#", "내용", "본 슬라이드"], ...TOC.slice(6)], { x: 6.85, y: 1.4, w: 5.9, colW: [0.8, 3.6, 1.5], fs: 14, rowH: 0.6 });
+  table(s, [["#", "내용", "본 슬라이드"], ...TOC.slice(0, 9)], { x: 0.6, y: 1.35, w: 5.9, colW: [0.8, 3.8, 1.3], fs: 13, rowH: 0.5 });
+  table(s, [["#", "내용", "본 슬라이드"], ...TOC.slice(9)], { x: 6.85, y: 1.35, w: 5.9, colW: [0.8, 3.8, 1.3], fs: 13, rowH: 0.5 });
   foot(s, "모든 숫자는 저장소 results/ 의 CSV에서 12_slide_figs.py로 다시 읽어 넣었다");
 }
 { // A1
@@ -445,7 +446,7 @@ const TOC = [["A1", "데이터 통계", "5, 9"], ["A2", "라벨 규칙", "6"], [
     ["s_edit_then_python", "편집 직후 python 실행", "s_create_test", "테스트 파일 생성"],
     ["s_n_risky + 8종", "위험 명령 수, 종류별 횟수", "", ""]],
   { x: 0.6, y: 3.45, w: 12.2, colW: [2.4, 3.7, 2.4, 3.7], fs: 11.5, rowH: 0.38 });
-  T(s, "성공 여부, 최종 패치, 전체 길이, 모델 이름은 표 형식 모델 입력에서 제외 (GRU·GCN은 모델 one-hot 사용). 01_features.py, 08_sec_features.py", { x: 0.6, y: 6.6, w: 12.2, h: 0.35, fontSize: 11.5, color: SUB });
+  T(s, "성공 여부, 최종 패치, 종료 사유, 전체 길이는 입력에서 제외. 모델 이름은 모든 모델에 one-hot으로 들어간다. 행동과 신호의 판정 규칙은 A13. 01_features.py, 08_sec_features.py", { x: 0.6, y: 6.6, w: 12.2, h: 0.35, fontSize: 11.5, color: SUB });
 }
 { // A7
   const s = appx("A7. 모델 설정과 학습 절차");
@@ -488,7 +489,7 @@ const TOC = [["A1", "데이터 통계", "5, 9"], ["A2", "라벨 규칙", "6"], [
     { x: 9.5, y: 1.2, w: 3.3, h: 5.6, fontSize: 11.5, color: SUB });
 }
 { // A10
-  const s = appx("A10. 일반화와 단변량 신호");
+  const s = appx("A10. 일반화, 단변량 신호, 테스트 접촉별 탐지");
   const cm = [["평가 모델(학습에서 제외)", "평가 실행", "변조 ROC-AUC", "위험 명령 ROC-AUC"],
     ...["70b", "8b", "405b"].map((m) => { const a = D.cross_model.y_tamper.find((r) => r.k === 5 && r.model === m), b = D.cross_model.y_risky.find((r) => r.k === 5 && r.model === m);
       return [`Llama 3.1 ${m}`, n(a.n), a.roc.toFixed(3), b.roc.toFixed(3)]; })];
@@ -497,7 +498,13 @@ const TOC = [["A1", "데이터 통계", "5, 9"], ["A2", "라벨 규칙", "6"], [
   T(s, "학습이 빠른 표 형식 모델(LightGBM)로 수행했다. 70b가 데이터의 93%라 70b를 빼면 학습 데이터가 5천 건으로 준다. 405b는 양성이 적어 수치가 불안정하다. 다른 모델·프레임워크로의 일반화는 한계로 남긴다.", { x: 8.5, y: 1.6, w: 4.3, h: 1.6, fontSize: 11.5, color: SUB });
   const lbl = { n_create: "파일 생성(재현 스크립트 등)", s_edit_then_python: "편집 직후 python 실행", s_last5_test_ctx: "최근 5단계 테스트 문맥", s_open_test: "기존 테스트 열람", s_fail_to_test: "실패 직후 테스트 이동", s_edit_err_nav: "오류 난 편집 후 탐색" };
   table(s, [["앞 10단계에 해당 행동이 있는 비율", "변조 실행", "나머지", "배율"], ...D.univariate.map((r) => [lbl[r.feature], pct(r.pos), pct(r.neg), (r.pos / r.neg).toFixed(1) + "배"])],
-    { x: 0.6, y: 3.65, w: 8.2, colW: [3.8, 1.4, 1.4, 1.6], fs: 11.5, rowH: 0.32, align: "center" });
+    { x: 0.6, y: 3.65, w: 6.2, colW: [3.1, 1.1, 1.0, 1.0], fs: 11.5, rowH: 0.34, align: "center" });
+  T(s, "예측 시점까지 테스트 접촉 여부별 재현율 (검토 5%)", { x: 7.1, y: 3.25, w: 5.65, h: 0.35, fontSize: 13, bold: true });
+  const cr = (k, c) => { const g = (sc) => con(k, sc, c); return [k, c ? "접촉" : hl("비접촉", INK), `${g("p_ens").pos}건 (${pct(g("p_ens").share, 0)})`, pct(g("p_rule").recall), pct(g("p_lr").recall), hl(pct(g("p_ens").recall), c ? INK : RED)]; };
+  table(s, [["k", "테스트", "변조 양성", "규칙", "LR", "앙상블"], cr(5, false), cr(5, true), cr(10, false), cr(10, true)],
+    { x: 7.1, y: 3.65, w: 5.65, colW: [0.5, 0.95, 1.4, 0.9, 0.9, 1.0], fs: 11.5, rowH: 0.34, align: "center" });
+  T(s, "접촉 = 기존 테스트 열람, 최근 5단계 테스트 문맥, 실패 직후 테스트 이동, 테스트 수정 추론 중 하나라도 있음. 접촉한 변조는 규칙으로도 잡히지만(양성 12건), 대부분인 비접촉 변조는 모델만 잡는다. results/monitor_contact.csv",
+    { x: 7.1, y: 5.5, w: 5.65, h: 1.0, fontSize: 11.5, color: SUB });
 }
 { // A11
   const s = appx("A11. 코드 구조와 재현");
@@ -516,17 +523,120 @@ const TOC = [["A1", "데이터 통계", "5, 9"], ["A2", "라벨 규칙", "6"], [
   T(s, [{ text: "GitHub: ", options: { bold: true } }, { text: "https://github.com/jeonbinggu/bigdata-agent-failure-prediction", options: { hyperlink: { url: "https://github.com/jeonbinggu/bigdata-agent-failure-prediction" }, color: TEAL } }],
     { x: 0.6, y: 6.5, w: 12.2, h: 0.35, fontSize: 12.5 });
 }
-{ // A12
-  const s = appx("A12. 참고 문헌");
+{ // A12 schema + parsing
+  const s = appx("A12. 데이터 스키마와 단계 파싱 (01_features.py)");
+  table(s, [["원본 컬럼", "쓰임", "구분"],
+    ["instance_id", "과제(GitHub 이슈) 식별자. 같은 과제의 실행이 학습과 평가에 섞이지 않게 나누는 키", "분할"],
+    ["model_name", "모델 입력(one-hot), 모델별 통계", "입력"],
+    ["trajectory", "메시지 목록. 단계별 (추론, 명령, 관찰)로 풀어 모든 특징을 만든다", "입력 (앞 k단계만)"],
+    ["target", "채점 결과(해결 여부). 해결률 통계와 보조 분석의 라벨", "통계·보조 라벨"],
+    ["generated_patch", "최종 패치 diff. 변조 라벨 y_tamper를 만든다", hl("라벨 전용")],
+    ["exit_status", "종료 사유. 실패 6유형 분류(A4)에만 쓴다", hl("기술 분석 전용")],
+    ["eval_logs", "쓰지 않음", "제외"]],
+  { x: 0.6, y: 1.35, w: 7.3, colW: [1.7, 4.1, 1.5], fs: 12, rowH: 0.5 });
+  card(s, 8.2, 1.35, 4.55, 4.2, "trajectory를 단계로 푸는 규칙", [
+    "1. role이 ai·user인 메시지만 남기고, 첫 user 메시지(이슈 본문)는 건너뛴다",
+    "2. ai 메시지 1개 + 바로 뒤 user 메시지(관찰) = 1단계",
+    "3. 명령 = ai 메시지의 마지막 코드 블록, 행동 = 명령의 첫 단어 (A13)",
+    "4. 관찰의 \"(Open file: …)\"로 지금 열린 파일을 추적해 테스트 파일 문맥을 판정",
+    "5. 앞 k단계만 잘라 특징을 계산. k보다 짧게 끝난 실행은 그 k에서 뺀다"].join("\n"), { bs: 12.5 });
+  T(s, "라벨 전용·기술 분석 전용 컬럼은 실행이 끝나야 알 수 있는 정보라 모델 입력에 넣지 않는다. 원본 parquet(1.1GB)는 pyarrow iter_batches로 256건씩 스트리밍해 읽고, 단계 시퀀스는 data/seqs_sec.npz에 한 번 저장해 GRU·GCN 학습에서 다시 쓴다.",
+    { x: 0.6, y: 5.75, w: 12.13, h: 0.8, fontSize: 12, color: SUB });
+}
+{ // A13 tokens + step signals
+  const s = appx("A13. 행동 토큰 14종과 단계별 신호 11개");
+  T(s, "행동 = 명령의 첫 단어로 정한다", { x: 0.6, y: 1.2, w: 5.8, h: 0.35, fontSize: 13, bold: true });
+  table(s, [["행동", "규칙"],
+    ["open, goto, edit, create,\nfind_file, submit, ls", "명령 첫 단어가 같은 이름"],
+    ["scroll", "scroll_up, scroll_down"],
+    ["search", "search, search_dir, search_file"],
+    ["python", "python, python3, pytest"],
+    ["cat_grep", "grep, cat, head, tail, find"],
+    ["other", "그 밖의 모든 명령 (cd, git, pip 등)"],
+    [hl("edit_test"), "edit인데 지금 열린 파일이 테스트 경로"],
+    [hl("risky"), "실행 명령이 위험 명령 규칙(A2)에 걸림"]],
+  { x: 0.6, y: 1.6, w: 5.8, colW: [2.2, 3.6], fs: 11.5, rowH: 0.4 });
+  T(s, "위 12종은 표 형식 특징(A6)에 쓴다. GRU·GCN은 여기에 edit_test, risky를 더한 14종을 토큰으로 쓴다.", { x: 0.6, y: 5.75, w: 5.8, h: 0.7, fontSize: 11.5, color: SUB });
+  T(s, "단계별 신호 11개 (GRU 입력, 토큰과 함께)", { x: 6.7, y: 1.2, w: 6.0, h: 0.35, fontSize: 13, bold: true });
+  table(s, [["신호", "정의"],
+    ["추론 길이, 관찰 길이", "log(1 + 글자 수) / 10"],
+    [hl("오류 (본문의 '!')"), "관찰에 Traceback·Error·Exception 또는 N failed·FAILED·AssertionError"],
+    ["편집 문법 오류", "관찰에 \"Your proposed edit has introduced new syntax error\""],
+    ["not found", "관찰에 not found·No such file·No matches found"],
+    ["같은 명령 반복", "명령 첫 줄이 직전 단계와 같음"],
+    ["테스트 통과 / 실패", "N passed·OK·Script completed successfully / N failed·FAILED·AssertionError"],
+    ["테스트 파일 문맥", "열린 파일 경로가 tests/, test_*.py, *_test.py, conftest.py"],
+    ["테스트 수정 의도", "추론에 (skip·remove·modify·fix 등) + (test·assert)"],
+    ["위험 명령", "이 단계의 토큰이 risky"]],
+  { x: 6.7, y: 1.6, w: 6.05, colW: [1.85, 4.2], fs: 11, rowH: 0.4 });
+  T(s, "길이 2개 + 테스트 통과·실패 2개 + 나머지 7개 = 11개. 판정은 모두 정규식이며 01_features.py, 07_failure_modes.py, 09_seq_graph.py에 있다.", { x: 6.7, y: 5.95, w: 6.05, h: 0.6, fontSize: 11.5, color: SUB });
+}
+{ // A14 univariate AUC + k curve
+  const s = appx("A14. 단변량 신호와 k별 성능");
+  const lbl = { n_create: "파일 생성(재현 스크립트 등)", s_edit_then_python: "편집 직후 python 실행", s_create_test: "테스트 파일 생성", s_edit_new_test: "새 테스트 파일 편집",
+    n_not_found: "not found 관찰", s_fail_to_test: "실패 직후 테스트 이동", s_edit_err_nav: "오류 난 편집 후 탐색", s_open_test: "기존 테스트 열람", s_last5_test_ctx: "최근 5단계 테스트 문맥",
+    first_edit_step: "첫 편집 단계(늦을수록)", s_kw_test_mod: "'테스트를 고치자' 추론" };
+  const fa = D.feat_auc.filter((r) => lbl[r.feature]);
+  s.addChart(pres.charts.BAR, [{ name: "AUC", labels: fa.map((r) => lbl[r.feature]), values: fa.map((r) => r.auc) }],
+    { ...chartBase, x: 0.5, y: 1.2, w: 7.3, h: 5.3, barDir: "bar", chartColors: fa.map((r) => (r.auc < 0.5 ? DARK : ACC)), varyColors: true, showValue: true,
+      dataLabelPosition: "outEnd", dataLabelFormatCode: "0.00", dataLabelColor: INK, showLegend: false, catAxisOrientation: "maxMin", valAxisMinVal: 0.2, valAxisMaxVal: 0.7,
+      catAxisLabelFontSize: 11, showTitle: true, title: "특징 하나만으로 본 변조 예측 AUC (k=10, 0.5 = 무관)" });
+  card(s, 8.1, 1.3, 4.65, 1.9, "읽는 법", "0.5보다 작으면(검정) 변조 실행에서 덜 나타나는 행동이다. 가장 강한 신호는 '하지 않은 행동'이다: 재현 스크립트를 만들지 않고, 고친 뒤 실행해 보지 않는다.", { bs: 12 });
+  T(s, "k별 성능 (LR, 홀드아웃)", { x: 8.1, y: 3.45, w: 4.65, h: 0.35, fontSize: 13, bold: true });
+  table(s, [["k", "실행", "양성", "ROC-AUC"], ...D.k_curve.map((r) => [r.k, n(r.n), r.pos, r.roc.toFixed(3)])],
+    { x: 8.1, y: 3.85, w: 4.65, colW: [0.8, 1.4, 1.0, 1.45], fs: 12, rowH: 0.36, align: "center" });
+  T(s, "k=20·30은 이미 변조가 끝난 실행을 빼면 양성이 한 자리 수라 수치가 불안정하다. 그래서 본 발표는 k=5·10만 보고한다. isotonic 보정 뒤 LR의 ECE는 k=5 0.002, k=10 0.0001이다.", { x: 8.1, y: 5.75, w: 4.65, h: 0.9, fontSize: 11.5, color: SUB });
+}
+{ // A15 side: failure prediction
+  const s = appx("A15. 보조 분석: 실행 실패 조기 예측 (01·02·04번 코드)");
+  const ks = [5, 10, 20, 30], om = (k, m) => D.old_full.find((r) => r.k === k && r.model === m), os = (k, m) => D.old_seq.find((r) => r.k === k && r.model === m);
+  s.addChart(pres.charts.BAR, [["LR", (k) => om(k, "lr").roc], ["LightGBM", (k) => om(k, "lgbm").roc], ["GRU", (k) => os(k, "gru").roc], ["GRU + LightGBM", (k) => os(k, "gru+lgbm").roc]]
+    .map(([nm, f]) => ({ name: nm, labels: ks.map((k) => `k=${k}`), values: ks.map(f) })),
+  { ...chartBase, x: 0.5, y: 1.2, w: 6.6, h: 4.5, barDir: "col", barGrouping: "clustered", chartColors: [G3, G2, G1, DARK], showLegend: true, legendPos: "b",
+    valAxisMinVal: 0.6, valAxisMaxVal: 0.8, showTitle: true, title: "앞 k단계로 '이 시도가 성공할까'를 예측한 ROC-AUC (홀드아웃)" });
+  table(s, [["k", "실행", "LR", "LightGBM", "GRU", "GRU + LightGBM"],
+    ...ks.map((k) => [k, n(om(k, "lr").n), om(k, "lr").roc.toFixed(3), om(k, "lgbm").roc.toFixed(3), os(k, "gru").roc.toFixed(3), hl(os(k, "gru+lgbm").roc.toFixed(3), INK)])],
+  { x: 7.4, y: 1.35, w: 5.35, colW: [0.5, 0.95, 0.8, 1.0, 0.8, 1.3], fs: 11.5, rowH: 0.4, align: "center" });
+  T(s, `같은 행동 로그 특징 44개로 채점 결과(target)를 예측했다. 과제 단위 홀드아웃 20%, isotonic 보정 뒤 ECE ${Math.min(...D.old_full.map((r) => r.ece)).toFixed(3)}~${Math.max(...D.old_full.map((r) => r.ece)).toFixed(3)}.\n\n앞 5단계만으로는 0.66, 30단계를 보면 0.76이다. 실패는 초반 행동만으로는 약하게만 예측된다.\n\n본론과의 관계: 단계 파싱과 특징 추출 코드만 함께 쓰고, 모델은 라벨이 달라 따로 학습했다.`,
+    { x: 7.4, y: 3.6, w: 5.35, h: 2.9, fontSize: 12, color: SUB });
+  foot(s, "results/metrics.csv, results/gru_metrics.csv");
+}
+{ // A16 side: early-stop policy
+  const s = appx("A16. 보조 분석: 조기 종료·재시작 정책 (03·05번 코드, 예산 100)");
+  const un = { steps: "단계 수", chars: "글자 수", ctx: "누적 컨텍스트", cctx: "누적 컨텍스트 + 캐싱" };
+  const pp = (v) => (v >= 0 ? "+" : "") + (v * 100).toFixed(1) + "%p";
+  table(s, [["비용 단위", "한 번만 시도", "무작위 재시도", "고정 상한", "예측 기반 조기 종료", "무작위 재시도 대비 [95% CI]", "고정 상한 대비 [95% CI]", "예측이 완벽할 때 (k=5)", "해결 가능 상한"],
+    ...D.policy100.map((r) => [un[r.unit], pct(r.single), pct(r.random), pct(r.cap), hl(pct(r.tuned), INK), `${pp(r.vs_random)} [${(r.vs_random_lo * 100).toFixed(1)}, ${(r.vs_random_hi * 100).toFixed(1)}]`,
+      `${pp(r.vs_cap)} [${(r.vs_cap_lo * 100).toFixed(1)}, ${(r.vs_cap_hi * 100).toFixed(1)}]`, pct(r.oracle_k5), pct(r.ceiling)])],
+  { x: 0.6, y: 1.35, w: 12.15, colW: [1.75, 1.05, 1.15, 1.0, 1.3, 1.85, 1.75, 1.25, 1.05], fs: 11, rowH: [0.6, 0.42, 0.42, 0.42, 0.42], align: "center" });
+  card(s, 0.6, 3.95, 3.85, 2.5, "설정", "과제마다 평균 100단계에 해당하는 예산을 주고, 같은 과제의 시도를 무작위 순서로 꺼내 쓴다. 조기 종료는 k=10·20·30에서 성공 확률이 임계값보다 낮으면 끊고 새로 시작한다. 임계값은 dev에서 고른다.", { bs: 12 });
+  card(s, 4.74, 3.95, 3.85, 2.5, "결과", `해결률은 대부분 재시작에서 나온다(단계 수 기준 ${pct(D.policy100[0].single)} → ${pct(D.policy100[0].random)}). 예측 기반 조기 종료가 더하는 이득은 무작위 재시도 대비 +0.3~1.6%p로 작다.`, { bs: 12 });
+  card(s, 8.88, 3.95, 3.85, 2.5, "천장", `예측이 완벽해도 ${pct(D.policy100[0].oracle_k5)}~${pct(D.policy100[2].oracle_k5)}이고, 시도 중 하나라도 성공한 과제가 ${pct(D.policy100[0].ceiling)}뿐이다. 예측을 더 잘해도 정책으로 얻을 수 있는 여지가 크지 않다.`, { bs: 12 });
+  foot(s, "results/policy_holdout_p_ens.csv, results/oracle_holdout.csv · 과제 단위 부트스트랩 95% CI · 비용 단위 정의는 03_policy.py");
+}
+{ // A17 references
+  const s = appx("A17. 참고 문헌과 도구");
   const refs = ["Zhong, Raghunathan, Carlini. ImpossibleBench: Measuring LLMs' Propensity of Exploiting Test Cases. arXiv:2510.20270, 2025.",
     "Jimenez et al. SWE-bench: Can Language Models Resolve Real-World GitHub Issues? ICLR 2024.",
     "Yang et al. SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering. arXiv:2405.15793, 2024.",
     "Nebius. SWE-agent-trajectories dataset. Hugging Face, CC-BY-4.0.",
     "Cemri et al. Why Do Multi-Agent LLM Systems Fail? (MAST). arXiv:2503.13657, 2025.",
     "Yuan et al. R-Judge: Benchmarking Safety Risk Awareness for LLM Agents. Findings of EMNLP 2024.",
+    "Skalse et al. Defining and Characterizing Reward Hacking. NeurIPS 2022.",
+    "Dubey et al. The Llama 3 Herd of Models. arXiv:2407.21783, 2024.",
     "Kipf, Welling. Semi-Supervised Classification with Graph Convolutional Networks. ICLR 2017.",
-    "Cho et al. Learning Phrase Representations using RNN Encoder–Decoder for Statistical Machine Translation. EMNLP 2014."];
-  T(s, refs.map((r, i) => ({ text: `[${i + 1}] ${r}`, options: { breakLine: i < refs.length - 1 } })), { x: 0.6, y: 1.3, w: 12.2, h: 5.3, fontSize: 14, paraSpaceAfter: 12 });
+    "Cho et al. Learning Phrase Representations using RNN Encoder–Decoder for Statistical Machine Translation. EMNLP 2014.",
+    "Ke et al. LightGBM: A Highly Efficient Gradient Boosting Decision Tree. NeurIPS 2017.",
+    "Kingma, Ba. Adam: A Method for Stochastic Optimization. ICLR 2015.",
+    "Zadrozny, Elkan. Transforming Classifier Scores into Accurate Multiclass Probability Estimates. KDD 2002. (isotonic 보정)",
+    "Efron. Bootstrap Methods: Another Look at the Jackknife. Annals of Statistics, 1979.",
+    "Cohen. A Coefficient of Agreement for Nominal Scales. Educational and Psychological Measurement, 1960."];
+  const half = 8;
+  [refs.slice(0, half), refs.slice(half)].forEach((col, c) =>
+    T(s, col.map((r, i) => ({ text: `[${i + 1 + c * half}] ${r}`, options: { breakLine: i < col.length - 1 } })), { x: 0.6 + c * 6.2, y: 1.3, w: 5.9, h: 4.4, fontSize: 11.5, paraSpaceAfter: 9 }));
+  rule(s, 0.6, 5.85, CW);
+  T(s, [{ text: "도구  ", options: { bold: true, color: INK } }, { text: "scikit-learn (Pedregosa et al., JMLR 2011) · PyTorch (Paszke et al., NeurIPS 2019) · LightGBM · pandas · pyarrow · matplotlib · huggingface_hub (데이터 내려받기) · pptxgenjs (발표 자료 생성)" }],
+    { x: 0.6, y: 6.0, w: 12.13, h: 0.7, fontSize: 11.5, color: SUB });
 }
 // pptxgenjs가 넣는 ZIP 폴더 항목은 클라우드 열기·공동 편집에서 문제를 일으켜 Python zipfile로 제거한다(JSZip 재압축은 PowerPoint가 못 염)
 const OUT = "27팀_발표.pptx", STRIP = `import sys,zipfile,os

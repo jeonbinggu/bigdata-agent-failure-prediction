@@ -137,6 +137,7 @@ def main():
     d["old_policy"] = [{"unit": r.unit, "budget": int(r.budget_steps), "solve": r3(r.solve_rate),
                         "vs_random": r3(r.diff_vs_random_retry), "vs_cap": r3(r.diff_vs_best_cap)} for r in ph.itertuples()]
 
+    extra(d)
     json.dump(d, open("slides/data.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     graph_example(feat)
     transition_heatmap()
@@ -190,6 +191,39 @@ def graph_example(feat, k=10):
              ha="center", fontsize=12, color="#4b5563")
     fig.tight_layout(rect=(0, 0.06, 1, 1))
     fig.savefig("slides/figs/graph_example.png", dpi=200)
+
+
+def extra(d):
+    """부록 보충용 숫자. results/ CSV만 읽는다(보조 분석: 실패 조기 예측·조기 종료 정책, 단변량 신호)."""
+    g = pd.read_csv(R + "gru_metrics.csv")
+    d["old_seq"] = [{"k": int(r.k), "model": r.model, "roc": r3(r.roc_auc), "pr": r3(r.pr_auc)} for r in g.itertuples()]
+    m = pd.read_csv(R + "metrics.csv")
+    m = m[m.split == "holdout"]
+    d["old_full"] = [{"k": int(r.k), "model": r.model, "n": int(r.n), "roc": r3(r.roc_auc), "pr": r3(r.pr_auc),
+                      "ece": r3(r.ece)} for r in m.itertuples()]
+    pol = pd.read_csv(R + "policy_holdout_p_ens.csv")
+    orc = pd.read_csv(R + "oracle_holdout.csv")
+    d["policy100"] = []
+    for u in ("steps", "chars", "ctx", "cctx"):
+        a = pol[(pol.unit == u) & (pol.budget_steps == 100)].set_index("policy")
+        o = orc[(orc.unit == u) & (orc.budget_steps == 100)].set_index("policy")
+        t = a.loc["tuned_early_stop"]
+        d["policy100"].append({
+            "unit": u, "single": r3(a.loc["single"].solve_rate), "random": r3(a.loc["random_retry"].solve_rate),
+            "cap": r3(a.loc["best_cap"].solve_rate), "tuned": r3(t.solve_rate),
+            "vs_random": r3(t.diff_vs_random_retry), "vs_random_lo": r3(t.diff_vs_random_retry_lo),
+            "vs_random_hi": r3(t.diff_vs_random_retry_hi), "vs_cap": r3(t.diff_vs_best_cap),
+            "vs_cap_lo": r3(t.diff_vs_best_cap_lo), "vs_cap_hi": r3(t.diff_vs_best_cap_hi),
+            "oracle_k10": r3(o.loc["oracle_k10"].solve_rate), "oracle_k5": r3(o.loc["oracle_k5"].solve_rate),
+            "ceiling": r3(o.loc["oracle_k5"].solvable_ceiling)})
+    t = pd.read_csv(R + "metrics_y_tamper.csv")
+    t = t[(t.split == "holdout") & (t.model == "lr")]
+    d["k_curve"] = [{"k": int(r.k), "n": int(r.n), "pos": int(round(r.base_rate * r.n)), "roc": r3(r.roc_auc),
+                     "ece": round(float(r.ece), 5)} for r in t.itertuples()]
+    e = pd.read_csv(R + "sec_feature_effects.csv")
+    e = e[(e.target == "y_tamper") & (e.k == 10)]
+    d["feat_auc"] = [{"feature": r.feature, "auc": r3(r.auc), "pos": r3(r.nz_pos), "neg": r3(r.nz_neg)}
+                     for r in e.sort_values("auc").itertuples()]
 
 
 def transition_heatmap():

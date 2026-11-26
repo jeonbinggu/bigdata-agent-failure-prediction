@@ -51,7 +51,7 @@ python 01_features.py && python 02_train.py && python 04_gru.py --oof && python 
 | E5 시퀀스·그래프 | `09_seq_graph.py` | GRU(행동 토큰 + 단계 신호), GCN(행동 전이 그래프, 순수 torch), LR+GRU+GCN 앙상블 |
 | E6 감시 운영 | `10_monitor.py` | 위험 점수 상위 x%만 검토할 때의 재현율, 과제 단위 부트스트랩 95% CI, 단순 규칙과 비교, 경보 후 사건까지 남은 단계 |
 | 라벨 교차 확인 | `11_label_check.py` | 감사 60건 중 범주별 5건을 블라인드로 다시 판정해 Cohen's kappa 계산 |
-| 발표 자료 | `12_slide_figs.py`, `slides/build.js` | 결과 CSV → `slides/data.json` → pptxgenjs로 본 발표 14장 + 부록 A0~A14 (발표자 노트에 대본) |
+| 발표 자료 | `12_slide_figs.py`, `slides/build.js` | 결과 CSV → `slides/data.json` → pptxgenjs로 본 발표 14장 + 부록 A0~A17 (대본은 Notion에 보관) |
 | 보조 | `01~05_*.py` | 실패 조기 예측(ROC-AUC 0.66~0.76)과 조기 종료·재시작 정책 |
 
 ## 누수 방지
